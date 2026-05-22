@@ -69,7 +69,7 @@ graph TD
     API2 --> FastAPI
     API3 --> FastAPI
     
-    subgraph LangGraph Agent [LangGraph Agent Mohamed]
+    subgraph LangGraphAgent ["LangGraph Agent Mohamed"]
         direction TB
         Router["Router Node"]:::mohamed
         WebFetch["Web Fetch Node<br/>(SERP API & Web Unlocker)"]:::mohamed
@@ -85,25 +85,25 @@ graph TD
     
     FastAPI --> Router
     
-    subgraph Intelligence Layer [Intelligence Layer Adil]
+    subgraph IntelligenceLayer ["Intelligence Layer Adil"]
         direction TB
         Scenario["Scenario Engine<br/>(Bull/Bear signals to confidence %)"]:::adil
         Pattern["Historical Pattern Matcher<br/>(Cosine sim on past briefs)"]:::adil
     end
     
-    Synth -- raw brief JSON --> Intelligence Layer
+    Synth -->|raw brief JSON| IntelligenceLayer
     
-    subgraph Data Layer [Data Layer Ilyas]
+    subgraph DataLayer ["Data Layer Ilyas"]
         direction TB
         Scrapers["Scrapers<br/>(Earnings, Filings, LinkedIn, Transcripts)"]:::ilyas
         DB[("DB (PostgreSQL & pgvector)")]:::ilyas
         Jobs["Jobs<br/>(Monitor, Embed, Ingest)"]:::ilyas
     end
     
-    Intelligence Layer -- enriched brief --> FastAPI
+    IntelligenceLayer -->|enriched brief| FastAPI
     
-    Data Layer -. data flow .-> LangGraph Agent
-    Data Layer -. data flow .-> Intelligence Layer
+    DataLayer -.->|data flow| LangGraphAgent
+    DataLayer -.->|data flow| IntelligenceLayer
 ```
 
 ### Parallelization — Designed From Day One
