@@ -1,0 +1,44 @@
+{
+  "scenarios": {
+    "bull": {
+      "summary": "Blackwell shipments exceed expectations, margins expand back to 76%, and sovereign AI demand accelerates.",
+      "confidence": 0.65,
+      "drivers": [
+        "Unprecedented demand visibility (12 months sold out)",
+        "Pricing power on next-gen chips"
+      ]
+    },
+    "base": {
+      "summary": "In-line beat and raise. Data center stays strong but margins remain flat due to transition costs.",
+      "confidence": 0.25,
+      "drivers": [
+        "Consistent hyperscaler CapEx",
+        "Supply chain normalization"
+      ]
+    },
+    "bear": {
+      "summary": "Export controls bite harder than expected, or hyperscaler CapEx commentary softens.",
+      "confidence": 0.10,
+      "risks": [
+        "China export restrictions",
+        "TSMC CoWoS packaging bottlenecks"
+      ]
+    }
+  },
+  "historical_matches": [
+    {
+      "quarter": "Q2 2023",
+      "similarity_score": 0.92,
+      "setup_summary": "Similar transition period from Ampere to Hopper, accompanied by massive data center demand surge.",
+      "outcome": "Stock gapped up 24% post-earnings as guidance completely shattered Wall Street consensus.",
+      "return_5d": "+28.4%"
+    },
+    {
+      "quarter": "Q3 2021",
+      "similarity_score": 0.78,
+      "setup_summary": "High expectations leading into the print, but minor margin compression due to supply constraints.",
+      "outcome": "Stock traded sideways initially before rallying 2 weeks later as supply chain fears eased.",
+      "return_5d": "+1.2%"
+    }
+  ]
+}

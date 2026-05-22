@@ -66,10 +66,11 @@ Even a rough version of this is defensible. Pure LLM output is not.
 
 ### Phase 3: Integration
 - [ ] `history/embedder.py` — embed current brief
+- [ ] **MOCK DATA**: Manually write 4-6 historical brief JSONs for NVDA/AMD and insert into Supabase to solve the cold-start problem.
 - [ ] `history/matcher.py` — cosine sim over historical briefs DB
 - [ ] `history/outcome.py` — retrieve stored outcomes per match
 - [ ] `pattern_agent.py` — match → outcome → narrative
-- [ ] **Test**: pattern matcher on 2 pre-loaded historical briefs 
+- [ ] **Test**: pattern matcher on 2 pre-loaded (mocked) historical briefs 
 
 ### Phase 4: Full Pipeline
 - [ ] Wire `enricher.py`: `scenario_engine` + `pattern_agent` → [E]

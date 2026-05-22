@@ -10,7 +10,7 @@
 | `data/scrapers/sec_filings.py` | 10-Q / 10-K structured content — Web Scraper API |
 | `data/scrapers/hiring_signals.py` | LinkedIn job postings per company — Web Scraper API |
 | `data/scrapers/transcripts_raw.py` | Raw transcript HTML — Web Scraper API |
-| `data/clean/transcript_cleaner.py` | **Strip HTML, normalize speakers, remove paywalls, separate Q&A from prepared remarks** |
+| `data/clean/transcript_cleaner.py` | **LLM JSON Extraction: Pass raw text to fast LLM (e.g. Haiku) to extract prepared remarks vs Q&A** |
 | `data/sources/yfinance.py` | EPS, revenue, guidance, P/E |
 | `data/sources/polygon.py` | News feed, options flow |
 | `data/embed/embedder.py` | Chunk + embed all content → pgvector |
@@ -55,7 +55,7 @@ Do not let it fall between Ilyas and Adil.
 ## Roadmap
 
 ### Phase 1: Foundation
-- [ ] Docker: PostgreSQL + pgvector running
+- [ ] Supabase Project created (Cloud Postgres + pgvector)
 - [ ] `schema.sql` applied — all tables created
 - [ ] Share DB_URL + confirm schema with team [A]
 
@@ -67,7 +67,7 @@ Do not let it fall between Ilyas and Adil.
 
 ### Phase 3: Integration
 - [ ] `transcripts_raw.py` — raw HTML via Bright Data
-- [ ] `transcript_cleaner.py` — HTML strip, speaker norm, Q&A split, paywall remove (output: structured JSON per transcript)
+- [ ] `transcript_cleaner.py` — LLM JSON parsing (avoid writing custom regex, just prompt Claude/GPT for JSON)
 - [ ] Verify Adil can read transcripts table [B]
 - [ ] `hiring_signals.py` — LinkedIn via Bright Data
 

@@ -75,7 +75,7 @@ BM25_TICKER_BOOST = 3.0
 ## Roadmap
 
 ### Phase 1: Foundation
-- [ ] LangGraph graph skeleton — 5 node stubs
+- [ ] Pipeline skeleton — prefer simple `asyncio` chain if LangGraph is too heavy
 - [ ] Synthesis prompt iteration on mock context (goal: brief that reads like an analyst wrote it)
 - [ ] Confirm schema [D] with Adil
 
@@ -87,7 +87,7 @@ BM25_TICKER_BOOST = 3.0
 ### Phase 3: Integration
 - [ ] `web_fetch.py` — SERP API + Web Unlocker (async parallel)
 - [ ] `rag_node.py` — recency filters + ticker boosting
-- [ ] Wire full graph: router → fetch → rag → pre_synthesis → synthesis
+- [ ] Wire full pipeline: router → fetch → rag → pre_synthesis → synthesis
 - [ ] **Milestone**: NVDA → raw brief JSON 
 
 ### Phase 4: Full Pipeline
@@ -99,6 +99,7 @@ BM25_TICKER_BOOST = 3.0
 
 ### Phase 5: Polish & Demo Prep
 - [ ] Error handling + fallbacks for Bright Data failures
+- [ ] Graceful DB fallback (e.g., if ticker has no historical data)
 - [ ] `cache.py` — pre-run and store NVDA, TSLA, AMD
 - [ ] Latency profiling — full enriched brief < 35s
 - [ ] Demo run clean ×3

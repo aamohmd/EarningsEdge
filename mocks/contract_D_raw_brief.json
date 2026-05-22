@@ -1,0 +1,52 @@
+{
+  "ticker": "NVDA",
+  "brief_id": "mock-uuid-1234",
+  "generated_at": "2024-05-22T10:00:00Z",
+  "bull_signals": [
+    {
+      "text": "Data center revenue grew 400% YoY, driven by Hopper architecture demand.",
+      "source_id": "source-uuid-1",
+      "source_type": "filing"
+    },
+    {
+      "text": "CEO mentioned Blackwell chip is in full production and sold out for next 12 months.",
+      "source_id": "source-uuid-2",
+      "source_type": "transcript"
+    }
+  ],
+  "bear_signals": [
+    {
+      "text": "Gross margins dipped by 0.5% due to supply chain component costs.",
+      "source_id": "source-uuid-3",
+      "source_type": "transcript"
+    }
+  ],
+  "risk_flags": [
+    "Potential US export restrictions to China affecting 10% of revenue."
+  ],
+  "analyst_sentiment": "bullish",
+  "comparable_quarter": "Q2 2023",
+  "sources": [
+    {
+      "id": "source-uuid-1",
+      "url": "https://sec.gov/...",
+      "type": "filing",
+      "date": "2024-05-15T00:00:00Z",
+      "authority": 1.0
+    },
+    {
+      "id": "source-uuid-2",
+      "url": "https://seekingalpha.com/...",
+      "type": "transcript",
+      "date": "2024-05-16T00:00:00Z",
+      "authority": 0.9
+    }
+  ],
+  "contradictions_resolved": [
+    {
+      "claim_a": "News article claimed Blackwell production delayed (Reuters).",
+      "claim_b": "CEO explicitly stated Blackwell is in full production (Earnings Call).",
+      "resolution": "Discarded news article claim; prioritized direct management quote from transcript."
+    }
+  ]
+}

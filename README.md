@@ -96,7 +96,7 @@ graph TD
     subgraph DataLayer ["Data Layer Ilyas"]
         direction TB
         Scrapers["Scrapers<br/>(Earnings, Filings, LinkedIn, Transcripts)"]:::ilyas
-        DB[("DB (PostgreSQL & pgvector)")]:::ilyas
+        DB[("DB (Supabase / Managed pgvector)")]:::ilyas
         Jobs["Jobs<br/>(Monitor, Embed, Ingest)"]:::ilyas
     end
     
@@ -277,11 +277,10 @@ For detailed daily schedules and checklists, see the individual team member docu
 ```
 Backend         FastAPI, Python 3.11+
 Agent           LangGraph, LangChain
-Storage         PostgreSQL, pgvector, SQLAlchemy
+Storage         Supabase (Managed PostgreSQL + pgvector), SQLAlchemy
 RAG             LlamaIndex, BM25, RRF fusion, cross-encoder reranking
 Data            Bright Data (4 tools), yFinance, Polygon.io
-Infrastructure  Docker
-LLM             OpenAI GPT-4o / Anthropic Claude
+Infrastructure  Serverless / Fast LLMs / API (No-Docker)
 ```
 
 ---
@@ -296,9 +295,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # BRIGHT_DATA_API_KEY=
 # OPENAI_API_KEY=
-# DATABASE_URL=postgresql://user:pass@localhost:5432/earningsedge
+# DATABASE_URL=postgresql://postgres.[YOUR-PROJECT]:[PASSWORD]@aws-0-REGION.pooler.supabase.com:6543/postgres
 
-docker-compose up -d postgres
+# Note: Docker is no longer required due to Supabase migration
 python data/db/migrate.py
 uvicorn api.main:app --reload
 
