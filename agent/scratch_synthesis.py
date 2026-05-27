@@ -1,4 +1,5 @@
 import json
+import httpx
 import os
 import re
 import sys
@@ -13,14 +14,21 @@ load_dotenv()
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mock.nvda_chunks import NVDA_CHUNKS
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-MODEL = "gpt-4o"
+client = OpenAI(
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1",
+    http_client=httpx.Client(http2=False)
+)
+client_fast = client
+
+MODEL_FRONTIER = "llama-3.3-70b-versatile"       # reasoning, detection, drafting
+MODEL_FAST     = "llama-3.1-8b-instant"        # classification, coherence check
 TICKER = "NVDA"
 
 
-def call_llm(system_prompt: str, user_prompt: str) -> str:
+def call_llm(system_prompt: str, user_prompt: str, model: str = MODEL_FRONTIER) -> str:
     response = client.chat.completions.create(
-        model=MODEL,
+        model=model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -47,6 +55,9 @@ def format_chunks(chunks: list) -> str:
 
 
 def call_0_detect_contradictions(chunks: list) -> list:
+    # NOTE: Be careful of hallucinated contradiction pairs from lower-tier models.
+    # False pairings (e.g. comparing MOUs vs NREs) can cause valid chunks to be
+    # incorrectly discarded as losers in Call 2. Always use a frontier model here.
     system = """You are a senior financial analyst doing a contradiction audit.
 
 Your ONLY job is to find pairs of chunks that conflict with each other.
@@ -129,7 +140,7 @@ Format:
 }"""
 
     user = f"Classify these chunks for {TICKER}.{known_pairs_text}\n\n{format_chunks(chunks)}"
-    return parse_json(call_llm(system, user))
+    return parse_json(call_llm(system, user, model=MODEL_FAST))
 
 
 def call_2_resolve(chunks: list, classification: dict) -> list:
@@ -278,7 +289,7 @@ BEAR SECTION:
 RISK SECTION:
 {draft['risk_section']}"""
 
-    return parse_json(call_llm(system, user))
+    return parse_json(call_llm(system, user, model=MODEL_FAST))
 
 
 def call_5_format(chunks: list, classification: dict, resolutions: list, coherence: dict, draft: dict, brief_id: str, generated_at: str) -> dict:

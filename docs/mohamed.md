@@ -74,10 +74,10 @@ BM25_TICKER_BOOST = 3.0
 
 ## Roadmap
 
-### Phase 1: Foundation
-- [ ] Pipeline skeleton — prefer simple `asyncio` chain if LangGraph is too heavy
-- [ ] Synthesis prompt iteration on mock context (goal: brief that reads like an analyst wrote it)
-- [ ] Confirm schema [D] with Adil
+### Phase 1 — Foundation
+- [x] `mock/nvda_chunks.py` with realistic contradicting chunks
+- [x] Synthesis prompt iteration on mock data (goal: brief that reads like an analyst wrote it)
+- [x] Confirm schema [D] with Adil — no changes after this
 
 ### Phase 2: Core Implementation
 - [ ] `pre_synthesis.py` — dedup, recency weight, contradiction flag
