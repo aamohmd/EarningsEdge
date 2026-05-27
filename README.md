@@ -295,6 +295,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # BRIGHT_DATA_API_KEY=
 # OPENAI_API_KEY=
+# GROQ_API_KEY=
 # DATABASE_URL=postgresql://postgres.[YOUR-PROJECT]:[PASSWORD]@aws-0-REGION.pooler.supabase.com:6543/postgres
 
 # Note: Docker is no longer required due to Supabase migration
