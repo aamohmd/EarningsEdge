@@ -1,18 +1,4 @@
 """
-enricher.py — Main Orchestrator (Adil)
-
-PURPOSE:
-    The entry point for Adil's intelligence layer.
-    Receives the Raw Brief [D] from Mohamed, runs both sub-components,
-    and returns the Enriched Brief [E] back to Mohamed.
-
-WORKFLOW:
-    1. Receive raw brief [D] (JSON) from Mohamed's synthesis node
-    2. Pass [D] to the Scenario Engine → get Bull/Base/Bear scenarios with confidence %
-    3. Pass [D] to the Pattern Agent → get 2-3 historical matches with outcomes
-    4. Combine both outputs into the Enriched Brief [E] (JSON)
-    5. Return [E] to Mohamed's FastAPI layer
-
 INPUT — [D] Raw Brief:
     {
         "ticker": "NVDA",
@@ -45,18 +31,40 @@ OUTPUT — [E] Enriched Brief:
         ]
     }
 
-DEPENDENCIES:
-    - scenario.engine (Scenario Engine pipeline)
-    - history.pattern_agent (Historical Pattern Matcher pipeline)
-
-NOTES:
-    - Makes ZERO extra web calls — runs entirely on stored data + Mohamed's brief
-    - Target latency: < 12 seconds for the full enrichment
-    - Must handle edge cases gracefully (no historical data, < 3 briefs in DB, etc.)
 """
+import logging
+from scenarios_historicalPattern.scenario.engine import run_scenario_engine
+from scenarios_historicalPattern.history.pattern_agent import run_pattern_agent
 
-# TODO: Import scenario engine
-# TODO: Import pattern agent
-# TODO: Define enrich(raw_brief: dict) -> dict function
-# TODO: Wire scenario_engine + pattern_agent → combine into [E]
-# TODO: Add error handling / graceful fallback for missing data
+logger = logging.getLogger(__name__)
+
+def enrich(raw_brief: dict) -> dict:
+
+    if not isinstance(raw_brief, dict):
+        raise ValueError("raw_brief must be a dictionary")
+
+    # 1. Run Scenario Engine
+    try:
+        scenarios = run_scenario_engine(raw_brief)
+    except Exception as e:
+        logger.error(f"Error running scenario engine: {e}", exc_info=True)
+        # Graceful fallback for scenarios to avoid crashing the pipeline
+        scenarios = {
+            "bull": {"summary": "Error generating scenario", "confidence": 0.33, "drivers": []},
+            "base": {"summary": "Error generating scenario", "confidence": 0.34, "drivers": []},
+            "bear": {"summary": "Error generating scenario", "confidence": 0.33, "risks": []}
+        }
+
+    # 2. Run Historical Pattern Matcher
+    try:
+        historical_matches = run_pattern_agent(raw_brief)
+    except Exception as e:
+        logger.error(f"Error running pattern agent: {e}", exc_info=True)
+        # Graceful fallback for historical matches (empty list)
+        historical_matches = []
+
+    # 3. Combine both outputs into the Enriched Brief [E]
+    return {
+        "scenarios": scenarios,
+        "historical_matches": historical_matches
+    }
