@@ -1,2 +1,3 @@
-# Intelligence Amplifier — Adil's Layer
-# Takes Mohamed's raw brief [D] and returns enriched brief [E]
+from scenarios_historicalPattern.enricher import enrich
+
+__all__ = ["enrich"]

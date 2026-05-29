@@ -22,7 +22,11 @@
     }
   ],
   "risk_flags": [
-    "Potential US export restrictions to China affecting 10% of revenue."
+    {
+      "text": "Potential US export restrictions to China affecting 10% of revenue.",
+      "source_id": "source-uuid-2",
+      "source_type": "transcript"
+    }
   ],
   "analyst_sentiment": "bullish",
   "comparable_quarter": "Q2 2023",
