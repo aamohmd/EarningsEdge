@@ -6,13 +6,12 @@ import sys
 from uuid import uuid4
 from datetime import datetime, timezone
 
+from agent.nodes.pre_synthesis import rough_label
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from mock.nvda_chunks import NVDA_CHUNKS
 
 client = OpenAI(
     api_key=os.getenv("GROQ_API_KEY"),
@@ -21,22 +20,27 @@ client = OpenAI(
 )
 client_fast = client
 
-MODEL_FRONTIER = "llama-3.3-70b-versatile"       # reasoning, detection, drafting
-MODEL_FAST     = "llama-3.1-8b-instant"        # classification, coherence check
-TICKER = "NVDA"
+MODEL_FRONTIER = "llama-3.3-70b-versatile"
+MODEL_FAST     = "llama-3.1-8b-instant"
 
+import time
 
 def call_llm(system_prompt: str, user_prompt: str, model: str = MODEL_FRONTIER) -> str:
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0.2,
-    )
-    return response.choices[0].message.content.strip()
-
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.2,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            if attempt == 2:
+                raise e
+            time.sleep(1)
 
 def parse_json(raw: str) -> dict:
     clean = raw.strip()
@@ -46,18 +50,13 @@ def parse_json(raw: str) -> dict:
             clean = clean[4:]
     return json.loads(clean.strip())
 
-
 def format_chunks(chunks: list) -> str:
     return "\n".join(
         f"[{c['id']}] ({c['source_type'].upper()} | {c['source']} | {c['date']} | authority={c['authority']})\n{c['chunk']}\n"
         for c in chunks
     )
 
-
-def call_0_detect_contradictions(chunks: list) -> list:
-    # NOTE: Be careful of hallucinated contradiction pairs from lower-tier models.
-    # False pairings (e.g. comparing MOUs vs NREs) can cause valid chunks to be
-    # incorrectly discarded as losers in Call 2. Always use a frontier model here.
+def call_0_detect_contradictions(chunks: list, ticker: str) -> list:
     system = """You are a senior financial analyst doing a contradiction audit.
 
 Your ONLY job is to find pairs of chunks that conflict with each other.
@@ -91,7 +90,7 @@ Format:
   ]
 }"""
 
-    user = f"""Find all contradiction pairs in these {len(chunks)} chunks for {TICKER}.
+    user = f"""Find all contradiction pairs in these {len(chunks)} chunks for {ticker}.
 
 Compare every chunk against every other chunk. Check all 5 contradiction types for each pair.
 
@@ -100,8 +99,7 @@ Compare every chunk against every other chunk. Check all 5 contradiction types f
     result = parse_json(call_llm(system, user))
     return result.get("contradiction_pairs", [])
 
-
-def call_1_classify(chunks: list, known_pairs: list) -> dict:
+def call_1_classify(chunks: list, known_pairs: list, ticker: str) -> dict:
     known_pairs_text = ""
     if known_pairs:
         known_pairs_text = "\n\nKNOWN CONTRADICTION PAIRS (already detected — label both chunks in each pair as 'contradicted'):\n"
@@ -139,11 +137,10 @@ Format:
   ]
 }"""
 
-    user = f"Classify these chunks for {TICKER}.{known_pairs_text}\n\n{format_chunks(chunks)}"
+    user = f"Classify these chunks for {ticker}.{known_pairs_text}\n\n{format_chunks(chunks)}"
     return parse_json(call_llm(system, user, model=MODEL_FAST))
 
-
-def call_2_resolve(chunks: list, classification: dict) -> list:
+def call_2_resolve(chunks: list, classification: dict, ticker: str) -> list:
     pairs = classification.get("contradiction_pairs", [])
     if not pairs:
         return []
@@ -169,8 +166,10 @@ Rules for resolution — apply them strictly in this order:
 2. Direct named management quotes (e.g. CEO on earnings call) ALWAYS beat anonymous supply-chain sources.
    An anonymous Reuters/Bloomberg source CANNOT override a named executive statement. Period.
 3. More recent data beats older data only when the sources have equal authority.
-4. winning_chunk = "both" is ONLY valid when the two claims are about different time horizons
-   (e.g. one describes current-quarter fact, the other is a future analyst forecast).
+4. If two numbers refer to different time periods for the same metric, they coexist — do not pick a winner.
+5. Interpretive contradictions (same metric, opposite framing): If one source frames a number positively and another frames it negatively (e.g. "missed whisper number"), pick the source with higher authority. Do NOT choose "both".
+6. winning_chunk = "both" is ONLY valid when the two claims are about different time horizons
+   (e.g. one describes current-quarter fact, the other is a future analyst forecast, or pre vs post restrictions).
    It is NEVER valid when one claim directly negates another claim about the same event.
 
 You MUST resolve every contradiction pair listed. Return exactly as many resolutions as pairs in the input.
@@ -191,11 +190,10 @@ Format:
   ]
 }"""
 
-    result = parse_json(call_llm(system, f"Resolve ALL {len(pairs)} contradiction pair(s) for {TICKER}. You must return exactly {len(pairs)} resolution(s).\n\n{pairs_text}"))
+    result = parse_json(call_llm(system, f"Resolve ALL {len(pairs)} contradiction pair(s) for {ticker}. You must return exactly {len(pairs)} resolution(s).\n\n{pairs_text}"))
     return result.get("resolutions", [])
 
-
-def call_3_draft(chunks: list, classification: dict, resolutions: list) -> dict:
+def call_3_draft(chunks: list, classification: dict, resolutions: list, ticker: str, pre_label_map: dict) -> dict:
     label_map = {c["id"]: c["label"] for c in classification["classified_chunks"]}
 
     discarded = set()
@@ -209,11 +207,13 @@ def call_3_draft(chunks: list, classification: dict, resolutions: list) -> dict:
         if c["id"] in discarded:
             continue
         label = label_map.get(c["id"], "neutral")
-        if label in ("bull_signal", "contradicted"):
+        
+        effective_label = pre_label_map.get(c["id"], label) if label == "contradicted" else label
+        if effective_label == "bull_signal":
             bull_chunks.append(c)
-        elif label == "bear_signal":
+        elif effective_label == "bear_signal":
             bear_chunks.append(c)
-        elif label == "risk_flag":
+        elif effective_label == "risk_flag":
             risk_chunks.append(c)
 
     system = """You are a senior buy-side analyst writing a pre-earnings intelligence brief.
@@ -239,7 +239,7 @@ Format:
   "analyst_sentiment": "bullish|neutral|bearish"
 }"""
 
-    user = f"""Write the three sections for {TICKER} using these classified chunks.
+    user = f"""Write the three sections for {ticker} using these classified chunks.
 
 BULL SIGNALS:
 {format_chunks(bull_chunks) if bull_chunks else 'None'}
@@ -255,8 +255,7 @@ RESOLVED CONTRADICTIONS (for context):
 
     return parse_json(call_llm(system, user))
 
-
-def call_4_coherence(draft: dict) -> dict:
+def call_4_coherence(draft: dict, ticker: str) -> dict:
     system = """You are an editor reviewing a financial analyst brief for internal consistency.
 
 Check for:
@@ -278,7 +277,7 @@ Format:
   "risk_section": "corrected or unchanged text"
 }"""
 
-    user = f"""Check these three sections for {TICKER}:
+    user = f"""Check these three sections for {ticker}:
 
 BULL SECTION:
 {draft['bull_section']}
@@ -291,8 +290,7 @@ RISK SECTION:
 
     return parse_json(call_llm(system, user, model=MODEL_FAST))
 
-
-def call_5_format(chunks: list, classification: dict, resolutions: list, coherence: dict, draft: dict, brief_id: str, generated_at: str) -> dict:
+def call_5_format(chunks: list, classification: dict, resolutions: list, coherence: dict, draft: dict, brief_id: str, generated_at: str, ticker: str, analyst_sentiment: str) -> dict:
     label_map = {c["id"]: c["label"] for c in classification["classified_chunks"]}
 
     discarded = set()
@@ -319,11 +317,10 @@ Rules:
 1. Each signal = one specific, concrete claim. Split multi-claim sentences into separate signals.
 2. Assign source_id to the chunk the fact ORIGINALLY came from using the CHUNK REFERENCE.
 3. Use the brief_id and generated_at values exactly as provided.
-4. comparable_quarter MUST be in 'Q# YYYY' format (e.g. 'Q2 2023'). null is not acceptable for large-cap stocks.
 
 Respond ONLY with valid JSON matching the exact schema. No text outside the JSON."""
 
-    user = f"""Format this {TICKER} brief into the schema below.
+    user = f"""Format this {ticker} brief into the schema below.
 
 BULL SECTION:
 {coherence['bull_section']}
@@ -334,7 +331,7 @@ BEAR SECTION:
 RISK SECTION:
 {coherence['risk_section']}
 
-ANALYST SENTIMENT: {draft.get('analyst_sentiment', 'neutral')}
+ANALYST SENTIMENT: {analyst_sentiment}
 
 CHUNK REFERENCE (match each signal's text to the chunk it came from):
 {json.dumps(chunk_reference, indent=2)}
@@ -347,7 +344,7 @@ CONTRADICTIONS RESOLVED:
 
 Output this exact JSON schema:
 {{
-  "ticker": "{TICKER}",
+  "ticker": "{ticker}",
   "brief_id": "{brief_id}",
   "generated_at": "{generated_at}",
   "bull_signals": [
@@ -356,41 +353,64 @@ Output this exact JSON schema:
   "bear_signals": [
     {{"text": "one specific claim", "source_id": "chunk_id that this fact came from", "source_type": "filing|transcript|news"}}
   ],
-  "risk_flags": ["string", "string"],
+  "risk_flags": [
+    {{"text": "one specific claim", "source_id": "chunk_id that this fact came from", "source_type": "filing|transcript|news"}}
+  ],
   "analyst_sentiment": "bullish|neutral|bearish",
-  "comparable_quarter": "REQUIRED: 'Q[1-4] YYYY' format only. e.g. 'Q3 2023'. Never null for large-cap stocks.",
+  "comparable_quarter": "REQUIRED: 'Q[1-4] YYYY' format only. e.g. 'Q3 2023'. Infer this from the context if possible.",
   "sources": {json.dumps(sources)},
   "contradictions_resolved": [
-    {{"claim_a": "string", "claim_b": "string", "resolution": "string"}}
+    {{"chunk_a": "string", "chunk_b": "string", "claim_a": "string", "claim_b": "string", "resolution": "string"}}
   ]
 }}"""
 
     result = parse_json(call_llm(system, user))
 
-    # Python always controls these — never trust the LLM
     result["brief_id"] = brief_id
     result["generated_at"] = generated_at
     result["sources"] = sources
     result["contradictions_resolved"] = [
-        {"claim_a": r["claim_a"], "claim_b": r["claim_b"], "resolution": r["resolution"]}
+        {"chunk_a": r.get("chunk_a", ""), "chunk_b": r.get("chunk_b", ""), "claim_a": r["claim_a"], "claim_b": r["claim_b"], "resolution": r["resolution"]}
         for r in resolutions
     ]
-    for field in ("bull_signals", "bear_signals"):
-        result[field] = [s for s in result.get(field, []) if s.get("source_id") not in discarded]
+    for field in ("bull_signals", "bear_signals", "risk_flags"):
+        result[field] = [s for s in result.get(field, []) if isinstance(s, dict) and s.get("source_id") not in discarded]
 
-    cq = result.get("comparable_quarter", None)
-    if not cq or not re.match(r"^Q[1-4] \d{4}$", str(cq).strip()):
-        result["comparable_quarter"] = "Q3 2023"
+    emitted_ids = set()
+    for field in ("bull_signals", "bear_signals", "risk_flags"):
+        for s in result.get(field, []):
+            if isinstance(s, dict) and s.get("source_id"):
+                emitted_ids.add(s["source_id"])
+                
+    for r in result.get("contradictions_resolved", []):
+        if r.get("chunk_a"): emitted_ids.add(r["chunk_a"])
+        if r.get("chunk_b"): emitted_ids.add(r["chunk_b"])
+
+    result["sources"] = [s for s in sources if s["id"] in emitted_ids]
 
     return result
 
+def run_synthesis(chunks_input, ticker: str) -> dict:
+    if isinstance(chunks_input, dict) and "chunks" in chunks_input:
+        analyst_sentiment = chunks_input.get("analyst_sentiment", "neutral")
+        chunks = chunks_input["chunks"]
+    else:
+        analyst_sentiment = "neutral"
+        chunks = chunks_input
 
-def run_synthesis(chunks: list) -> dict:
     brief_id = str(uuid4())
     generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    known_pairs = call_0_detect_contradictions(chunks)
-    classification = call_1_classify(chunks, known_pairs)
+    pre_label_map = {}
+    for c in chunks:
+        rl = rough_label(c)
+        if rl == "bull": pre_label_map[c["id"]] = "bull_signal"
+        elif rl == "bear": pre_label_map[c["id"]] = "bear_signal"
+        elif rl == "risk": pre_label_map[c["id"]] = "risk_flag"
+        else: pre_label_map[c["id"]] = "neutral"
+
+    known_pairs = call_0_detect_contradictions(chunks, ticker)
+    classification = call_1_classify(chunks, known_pairs, ticker)
 
     existing_pairs = {(p["chunk_a"], p["chunk_b"]) for p in classification.get("contradiction_pairs", [])}
     for p in known_pairs:
@@ -399,16 +419,12 @@ def run_synthesis(chunks: list) -> dict:
             classification.setdefault("contradiction_pairs", []).append(p)
             existing_pairs.add(key)
 
-    resolutions = call_2_resolve(chunks, classification)
-    draft = call_3_draft(chunks, classification, resolutions)
-    coherence = call_4_coherence(draft)
-    return call_5_format(chunks, classification, resolutions, coherence, draft, brief_id=brief_id, generated_at=generated_at)
-
-
-if __name__ == "__main__":
-    brief = run_synthesis(NVDA_CHUNKS)
-    print(json.dumps(brief, indent=2))
-
-    output_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mock", "nvda_brief_output.json")
-    with open(output_path, "w") as f:
-        json.dump(brief, f, indent=2)
+    resolutions = call_2_resolve(chunks, classification, ticker)
+    draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map)
+    coherence = call_4_coherence(draft, ticker)
+    
+    return call_5_format(
+        chunks, classification, resolutions, coherence, draft,
+        brief_id=brief_id, generated_at=generated_at, ticker=ticker,
+        analyst_sentiment=analyst_sentiment
+    )

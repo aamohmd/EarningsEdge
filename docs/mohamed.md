@@ -80,9 +80,9 @@ BM25_TICKER_BOOST = 3.0
 - [x] Confirm schema [D] with Adil — no changes after this
 
 ### Phase 2: Core Implementation
-- [ ] `pre_synthesis.py` — dedup, recency weight, contradiction flag
-- [ ] `synthesis.py` — 5-call reasoning chain
-- [ ] Test synthesis on mock pre-synthesis output
+- [x] `pre_synthesis.py` — dedup, recency weight, contradiction flag
+- [x] `synthesis.py` — 5-call reasoning chain
+- [x] Test synthesis on mock pre-synthesis output
 
 ### Phase 3: Integration
 - [ ] `web_fetch.py` — SERP API + Web Unlocker (async parallel)

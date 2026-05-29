@@ -22,7 +22,11 @@
     }
   ],
   "risk_flags": [
-    "Potential US export restrictions to China affecting 10% of revenue."
+    {
+      "text": "Potential US export restrictions to China affecting 10% of revenue.",
+      "source_id": "source-uuid-4",
+      "source_type": "news"
+    }
   ],
   "analyst_sentiment": "bullish",
   "comparable_quarter": "Q2 2023",
@@ -39,7 +43,14 @@
       "url": "https://seekingalpha.com/...",
       "type": "transcript",
       "date": "2024-05-16T00:00:00Z",
-      "authority": 0.9
+      "authority": 0.95
+    },
+    {
+      "id": "source-uuid-4",
+      "url": "https://ft.com/nvda-china-export-risk",
+      "type": "news",
+      "date": "2024-05-18T00:00:00Z",
+      "authority": 0.85
     }
   ],
   "contradictions_resolved": [
