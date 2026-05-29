@@ -189,6 +189,7 @@ Rules for resolution — apply them strictly in this order:
    It is NEVER valid when one claim directly negates another claim about the same event.
 
 You MUST resolve every contradiction pair listed. Return exactly as many resolutions as pairs in the input.
+Never pick a winner based on implication, tone, or which claim seems stronger — only source authority and time period rules apply.
 
 Respond ONLY with valid JSON. No explanation outside the JSON.
 
@@ -244,6 +245,18 @@ Writing rules:
 - Be specific — use numbers and facts from the chunks
 - Each section: 2-4 sentences maximum
 - Do NOT mention the same fact in both bull and bear sections
+
+Quantitative interpretation rules — apply these exactly:
+- Short interest below 5% of float = BULL signal (low bearish positioning, limited downside pressure). Never put low short interest in the bear section.
+- Short interest above 20% of float = BEAR signal (heavy short positioning, squeeze risk)
+- PEG ratio below 1.0 = BULL signal (undervalued relative to growth rate)
+- Forward P/E below sector average = BULL signal
+- Accelerating earnings beats (surprise % increasing quarter over quarter) = BULL signal
+- Revenue growth acceleration = BULL signal
+- Guidance above consensus = BULL signal
+
+Comparable quarter rule:
+- analyst_sentiment must reflect the actual signal ratio — if bull signals outnumber bear signals 2:1 or more, return "bullish". If bear > bull, return "bearish". Otherwise "neutral".
 
 Respond ONLY with valid JSON. No explanation outside the JSON.
 
@@ -336,6 +349,11 @@ Rules:
 1. Each signal = one specific, concrete claim. Split multi-claim sentences into separate signals.
 2. Assign source_id to the chunk the fact ORIGINALLY came from using the CHUNK REFERENCE.
 3. Use the brief_id and generated_at values exactly as provided.
+4. comparable_quarter MUST be a past historical quarter that resembles the current setup.
+   It must NEVER be the current quarter or any future quarter.
+   Valid examples: "Q2 2023", "Q3 2021", "Q4 2022"
+   If no clear historical parallel exists, use null.
+5. risk_flags must be objects with text, source_id, and source_type — not plain strings.
 
 Respond ONLY with valid JSON matching the exact schema. No text outside the JSON."""
 
@@ -376,7 +394,7 @@ Output this exact JSON schema:
     {{"text": "one specific claim", "source_id": "chunk_id that this fact came from", "source_type": "filing|transcript|news"}}
   ],
   "analyst_sentiment": "bullish|neutral|bearish",
-  "comparable_quarter": "REQUIRED: 'Q[1-4] YYYY' format only. e.g. 'Q3 2023'. Infer this from the context if possible.",
+  "comparable_quarter": "a PAST historical quarter e.g. Q2 2023 — NEVER the current or future quarter — null if no clear parallel",
   "sources": {json.dumps(sources)},
   "contradictions_resolved": [
     {{"chunk_a": "string", "chunk_b": "string", "claim_a": "string", "claim_b": "string", "resolution": "string"}}

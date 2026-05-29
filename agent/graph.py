@@ -26,7 +26,7 @@ from agent.nodes.router       import run_router
 from agent.nodes.web_fetch    import run_web_fetch
 from agent.nodes.pre_synthesis import run_pre_synthesis
 from agent.nodes.synthesis    import run_synthesis
-from intelligence.yfinance    import get_financial_context
+from intelligence.yfinance    import get_financial_context, get_yfinance_chunks
 
 try:
     from scenarios_historicalPattern.enricher import enrich as _enrich_real
@@ -89,24 +89,26 @@ async def node_web_fetch(state: PipelineState) -> PipelineState:
             days_to_earnings=state.get("days_to_earnings", 14),
             recency_mode=state["recency_mode"],
         )
-        yfinance_task = asyncio.to_thread(get_financial_context, state["ticker"])
+        yfinance_task = asyncio.to_thread(get_yfinance_chunks, state["ticker"])
         
-        chunks, fin_context = await asyncio.gather(
+        chunks, yf_chunks = await asyncio.gather(
             chunks_task, yfinance_task,
             return_exceptions=True
         )
         if isinstance(chunks, Exception):
             chunks = []
-        if isinstance(fin_context, Exception):
-            fin_context = None
+        if isinstance(yf_chunks, Exception):
+            yf_chunks = []
+            
+        all_chunks = chunks + yf_chunks
     except Exception as e:
-        chunks = []
+        all_chunks = []
         fin_context = None
 
     return {
         **state,
-        "raw_chunks": chunks,
-        "financial_context": fin_context,
+        "raw_chunks": all_chunks,
+        "financial_context": None,
     }
 
 
@@ -116,7 +118,13 @@ async def node_pre_synthesis(state: PipelineState) -> PipelineState:
         run_pre_synthesis,
         state["raw_chunks"]
     )
-
+    
+    if result["stats"]["kept_count"] < 5:
+        logger.warning(
+            f"[node_pre_synthesis] only {result['stats']['kept_count']} chunks — "
+            f"below minimum threshold, pipeline may produce low quality brief"
+        )
+        
     return {
         **state,
         "clean_chunks":       result["chunks"],

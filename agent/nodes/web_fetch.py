@@ -180,18 +180,34 @@ async def fetch_full_articles(
             "Content-Type":  "application/json",
         }
 
-        try:
-            response = await client.post(
-                BRIGHT_DATA_UNLOCKER_URL,
-                json=payload,
-                headers=headers,
-                timeout=REQUEST_TIMEOUT,
-            )
-            response.raise_for_status()
-            return _parse_article_html(response.text, ticker, url, date, authority)
+        # Retry up to 2 times on 502 — Bright Data is non-deterministic
+        for attempt in range(3):
+            try:
+                response = await client.post(
+                    BRIGHT_DATA_UNLOCKER_URL,
+                    json=payload,
+                    headers=headers,
+                    timeout=REQUEST_TIMEOUT,
+                )
+                if response.status_code == 502 and attempt < 2:
+                    wait = 2 ** attempt  # 1s, 2s
+                    logger.warning(f"502 on {url} attempt {attempt+1} — retrying in {wait}s")
+                    await asyncio.sleep(wait)
+                    continue
+                response.raise_for_status()
+                return _parse_article_html(response.text, ticker, url, date, authority)
 
-        except Exception:
-            return []
+            except httpx.TimeoutException:
+                logger.warning(f"Timeout on {url} attempt {attempt+1}")
+                if attempt < 2:
+                    await asyncio.sleep(2)
+                    continue
+                return []
+            except Exception as e:
+                logger.warning(f"Failed {url}: {e}")
+                return []
+
+        return []
 
     results = await asyncio.gather(
         *[fetch_one_article(u) for u in top_urls],
