@@ -40,7 +40,42 @@ NOTES:
     - If no outcome data exists for a match, skip it gracefully
 """
 
-# TODO: Define retrieve_outcomes(matches: list[dict]) -> list[dict]
-# TODO: Query the database for outcome data per matched brief
-# TODO: Format setup_summary, outcome, and return_5d
-# TODO: Handle missing outcome data gracefully
+def retrieve_outcomes(matches: list) -> list:
+  
+    enriched_matches = []
+    for match in matches:
+        quarter = match.get("quarter", "Unknown Quarter")
+        similarity_score = match.get("similarity_score", 0.0)
+        
+        # Default fallback values
+        setup_summary = "No historical setup summary available."
+        outcome = "No historical outcome available."
+        return_5d = "0.0%"
+        
+        # Extract values from enriched_brief_json if available
+        ebj = match.get("enriched_brief_json")
+        if isinstance(ebj, dict):
+            setup_summary = ebj.get("setup_summary", setup_summary)
+            outcome = ebj.get("outcome", outcome)
+            return_5d = ebj.get("return_5d", return_5d)
+        else:
+            # Fallback checks inside raw_brief_json or direct match keys
+            raw_brief = match.get("raw_brief_json")
+            if isinstance(raw_brief, dict):
+                # Simple fallback heuristic summary from the ticker
+                ticker = raw_brief.get("ticker", "UNKNOWN")
+                setup_summary = f"Pre-earnings setup for {ticker} during {quarter}."
+        
+        # Ensure return_5d is formatted with percent sign and sign indicator (+/-)
+        if isinstance(return_5d, (int, float)):
+            sign = "+" if return_5d >= 0 else ""
+            return_5d = f"{sign}{return_5d}%"
+            
+        enriched_matches.append({
+            "quarter": quarter,
+            "similarity_score": round(similarity_score, 2),
+            "setup_summary": setup_summary,
+            "outcome": outcome,
+            "return_5d": return_5d
+        })
+    return enriched_matches

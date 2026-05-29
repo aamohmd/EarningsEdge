@@ -30,7 +30,54 @@ NOTES:
     - The brief text should be formatted consistently for reliable similarity matching
 """
 
-# TODO: Define format_brief_for_embedding(raw_brief: dict) -> str
-# TODO: Define embed_brief(raw_brief: dict) -> list[float]
-# TODO: Call OpenAI embedding API (or use langchain's embedding wrapper)
-# TODO: Ensure the embedding model matches what's used for historical briefs
+import os
+import logging
+from openai import OpenAI
+
+logger = logging.getLogger(__name__)
+
+def format_brief_for_embedding(raw_brief: dict) -> str:
+
+    ticker = raw_brief.get("ticker", "UNKNOWN")
+    sentiment = raw_brief.get("analyst_sentiment", "neutral")
+    
+    bull_signals = raw_brief.get("bull_signals") or []
+    bear_signals = raw_brief.get("bear_signals") or []
+    risk_flags = raw_brief.get("risk_flags") or []
+    
+    bull_texts = [sig.get("text") for sig in bull_signals if isinstance(sig, dict) and sig.get("text")]
+    bear_texts = [sig.get("text") for sig in bear_signals if isinstance(sig, dict) and sig.get("text")]
+    
+    risk_texts = []
+    for r in risk_flags:
+        if isinstance(r, dict) and r.get("text"):
+            risk_texts.append(r.get("text"))
+        elif isinstance(r, str):
+            risk_texts.append(r)
+            
+    text_parts = [
+        f"Ticker: {ticker}",
+        f"Sentiment: {sentiment}",
+        "Bull Drivers:",
+        *("- " + text for text in bull_texts),
+        "Bear Drivers:",
+        *("- " + text for text in bear_texts),
+        "Risk Flags:",
+        *("- " + text for text in risk_texts)
+    ]
+    return "\n".join(text_parts)
+
+def embed_brief(raw_brief: dict) -> list:
+    
+    formatted_text = format_brief_for_embedding(raw_brief)
+    try:
+        # Lazy client initialization to avoid import-time key errors
+        client = OpenAI()
+        response = client.embeddings.create(
+            input=[formatted_text],
+            model="text-embedding-3-small"
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        logger.warning(f"Error calling OpenAI embedding API: {e}. Falling back to zero-vector.")
+        return [0.0] * 1536

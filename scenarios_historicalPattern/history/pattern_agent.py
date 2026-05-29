@@ -37,8 +37,47 @@ NOTES:
     - Cold-start: seed the DB with 4-6 manually written historical briefs for NVDA/AMD
 """
 
-# TODO: Import embedder, matcher, outcome
-# TODO: Define run_pattern_agent(raw_brief: dict) -> list[dict]
-# TODO: Wire: embed_brief → match_historical → retrieve_outcomes
-# TODO: Add graceful fallback for empty/missing data
-# TODO: Add logging for debugging similarity scores
+import logging
+from scenarios_historicalPattern.history.embedder import embed_brief
+from scenarios_historicalPattern.history.matcher import match_historical_briefs
+from scenarios_historicalPattern.history.outcome import retrieve_outcomes
+
+logger = logging.getLogger(__name__)
+
+def run_pattern_agent(raw_brief: dict) -> list:
+  
+    if not isinstance(raw_brief, dict):
+        raise ValueError("raw_brief must be a dictionary")
+        
+    ticker = raw_brief.get("ticker")
+    if not ticker:
+        logger.warning("No ticker found in raw_brief. Skipping pattern matching.")
+        return []
+        
+    # 1. Embed current brief
+    try:
+        current_embedding = embed_brief(raw_brief)
+    except Exception as e:
+        logger.error(f"Failed to embed brief: {e}", exc_info=True)
+        return []
+        
+    # Check if we got a valid non-zero embedding or if embedder returned fallback
+    if not current_embedding or all(v == 0.0 for v in current_embedding):
+        logger.warning("Embedding failed or returned zero vector. Pattern matching might be less precise.")
+        
+    # 2. Match historical briefs
+    try:
+        matches = match_historical_briefs(current_embedding, ticker=ticker)
+    except Exception as e:
+        logger.error(f"Failed to match historical briefs: {e}", exc_info=True)
+        return []
+        
+    # 3. Retrieve outcomes
+    try:
+        matches_with_outcomes = retrieve_outcomes(matches)
+    except Exception as e:
+        logger.error(f"Failed to retrieve outcomes: {e}", exc_info=True)
+        return []
+        
+    logger.info(f"Successfully matched {len(matches_with_outcomes)} historical briefs for {ticker}.")
+    return matches_with_outcomes
