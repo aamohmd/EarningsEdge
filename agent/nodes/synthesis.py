@@ -1,3 +1,19 @@
+"""
+agent/nodes/synthesis.py
+
+5-call LLM reasoning chain that produces a structured JSON brief from classified chunks.
+
+  Call 0 — Detect contradictions between all chunk pairs
+  Call 1 — Classify each chunk: bull_signal / bear_signal / risk_flag / neutral / contradicted
+  Call 2 — Resolve flagged contradictions — pick the more authoritative source
+  Call 3 — Draft bull, bear, and risk sections independently
+  Call 4 — Coherence check — fix anything appearing in both bull and bear
+  Call 5 — Format to final JSON schema (Contract D)
+
+Input:  pre_synthesis output {chunks, analyst_sentiment, ...} or raw chunk list
+Output: structured brief matching Contract D schema
+"""
+
 import json
 import httpx
 import os
@@ -193,7 +209,7 @@ Format:
     result = parse_json(call_llm(system, f"Resolve ALL {len(pairs)} contradiction pair(s) for {ticker}. You must return exactly {len(pairs)} resolution(s).\n\n{pairs_text}"))
     return result.get("resolutions", [])
 
-def call_3_draft(chunks: list, classification: dict, resolutions: list, ticker: str, pre_label_map: dict) -> dict:
+def call_3_draft(chunks: list, classification: dict, resolutions: list, ticker: str, pre_label_map: dict, financial_context: str = "") -> dict:
     label_map = {c["id"]: c["label"] for c in classification["classified_chunks"]}
 
     discarded = set()
@@ -252,6 +268,9 @@ RISK FLAGS:
 
 RESOLVED CONTRADICTIONS (for context):
 {json.dumps(resolutions, indent=2) if resolutions else 'None'}"""
+
+    if financial_context:
+        user += f"\n\n{financial_context}"
 
     return parse_json(call_llm(system, user))
 
@@ -390,7 +409,7 @@ Output this exact JSON schema:
 
     return result
 
-def run_synthesis(chunks_input, ticker: str) -> dict:
+def run_synthesis(chunks_input, ticker: str, financial_context: str = "") -> dict:
     if isinstance(chunks_input, dict) and "chunks" in chunks_input:
         analyst_sentiment = chunks_input.get("analyst_sentiment", "neutral")
         chunks = chunks_input["chunks"]
@@ -420,7 +439,7 @@ def run_synthesis(chunks_input, ticker: str) -> dict:
             existing_pairs.add(key)
 
     resolutions = call_2_resolve(chunks, classification, ticker)
-    draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map)
+    draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map, financial_context=financial_context)
     coherence = call_4_coherence(draft, ticker)
     
     return call_5_format(

@@ -1,3 +1,13 @@
+"""
+agent/scratch_phase2.py
+
+Phase 2 integration test — runs the full pre_synthesis → synthesis pipeline
+on mock NVDA chunks and validates the output against Contract D.
+
+Run: python agent/scratch_phase2.py
+Output saved to: mock/nvda_brief_output.json
+"""
+
 import json
 import time
 import sys

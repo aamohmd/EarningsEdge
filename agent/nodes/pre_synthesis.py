@@ -1,3 +1,18 @@
+"""
+agent/nodes/pre_synthesis.py
+
+Runs before the LLM synthesis chain.
+Takes raw chunks from web_fetch + RAG and prepares them for synthesis:
+
+  1. Recency filter  — drops chunks older than the cutoff for their source type
+  2. Deduplication   — removes near-duplicate chunks, keeps the higher-authority version
+  3. Rough labelling — assigns bull / bear / risk / neutral to each kept chunk
+  4. Sentiment roll-up — weighted aggregate across all kept chunks
+
+Input:  list of raw chunks (from web_fetch or RAG)
+Output: {chunks, discarded, analyst_sentiment, stats}
+"""
+
 from datetime import datetime, timedelta
 from difflib import SequenceMatcher
 
