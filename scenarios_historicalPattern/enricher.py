@@ -10,31 +10,31 @@ INPUT — [D] Raw Brief:
         {
             "text": "The US Department of Commerce is considering further restrictions on AI chip exports to China, which currently accounts for approximately 10-15% of NVIDIA's total revenue.",
 
-"source_id": "chunk_7",
+            "source_id": "chunk_7",
 
-"source_type": "news"
+            "source_type": "news"
 
-},
+        },
 
-{
+      {
 
-"text": "Prior to the October 2023 export restrictions, China represented approximately 24% of NVIDIA's data center revenue, and new rules are expected to reduce this materially.",
+             "text": "Prior to the October 2023 export restrictions, China represented approximately 24% of NVIDIA's data center revenue, and new rules are expected to reduce this materially.",
 
-"source_id": "chunk_13",
+             "source_id": "chunk_13",
 
-"source_type": "news"
+             "source_type": "news"
 
-},
+        },
 
-{
+        {
 
-"text": "NVIDIA's operating expenses also increased 44% year-over-year to $4.1B, driven by a 61% surge in R&D spend, which may impact the company's profitability.",
+            "text": "NVIDIA's operating expenses also increased 44% year-over-year to $4.1B, driven by a 61% surge in R&D spend, which may impact the company's profitability.",
 
-"source_id": "chunk_15",
+            "source_id": "chunk_15",
 
-"source_type": "filing"
+            "source_type": "filing"
 
-}
+        }
 
 ],
         "analyst_sentiment": "bullish|neutral|bearish",
