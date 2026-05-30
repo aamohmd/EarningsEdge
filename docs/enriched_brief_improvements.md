@@ -318,3 +318,12 @@
 
 > [!TIP]
 > Start with P0 items — they're low effort, high impact, and will impress judges the most. P1 items should come in Phase 4-5 if time allows.
+
+---
+
+## Open Issues (flag to teammates)
+
+### Adil
+- [ ] Historical matches returning NVDA data for TSLA and AMD — pattern matcher not ticker-scoped
+- [ ] Scenario summaries copy-pasting signal text verbatim — needs analyst prose rewrite
+- [ ] Bull/bear confidence miscalibrated (equal scores on strongly bullish setups)

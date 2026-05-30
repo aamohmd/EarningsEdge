@@ -87,15 +87,6 @@ Call 5 → Format to final JSON schema (Contract D)
 
 ---
 
-## Open Issues (flag to teammates)
-
-### Adil
-- [ ] Historical matches returning NVDA data for TSLA and AMD — pattern matcher not ticker-scoped
-- [ ] Scenario summaries copy-pasting signal text verbatim — needs analyst prose rewrite
-- [ ] Bull/bear confidence miscalibrated (equal scores on strongly bullish setups)
-
----
-
 ## Cut Entirely
 - ~~`rag_node.py`~~ — no DB for demo, web_fetch gives sufficient signal
 - ~~`schema.sql` / `seed_db.py` / `embedder.py`~~ — Ilyas's scope, skipped
