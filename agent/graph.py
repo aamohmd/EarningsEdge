@@ -27,6 +27,7 @@ from agent.nodes.web_fetch    import run_web_fetch
 from agent.nodes.pre_synthesis import run_pre_synthesis
 from agent.nodes.synthesis    import run_synthesis
 from intelligence.yfinance    import get_financial_context, get_yfinance_chunks
+from data.sources.sec_filings import get_filing_chunks
 
 try:
     from scenarios_historicalPattern.enricher import enrich as _enrich_real
@@ -84,26 +85,34 @@ async def node_router(state: PipelineState) -> PipelineState:
 
 async def node_web_fetch(state: PipelineState) -> PipelineState:
     try:
-        chunks_task = run_web_fetch(
+        chunks_task   = run_web_fetch(
             ticker=state["ticker"],
             days_to_earnings=state.get("days_to_earnings", 14),
             recency_mode=state["recency_mode"],
         )
         yfinance_task = asyncio.to_thread(get_yfinance_chunks, state["ticker"])
-        
-        chunks, yf_chunks = await asyncio.gather(
-            chunks_task, yfinance_task,
-            return_exceptions=True
+        sec_task      = get_filing_chunks(state["ticker"])
+
+        chunks, yf_chunks, sec_chunks = await asyncio.gather(
+            chunks_task, yfinance_task, sec_task,
+            return_exceptions=True,
         )
         if isinstance(chunks, Exception):
             chunks = []
         if isinstance(yf_chunks, Exception):
             yf_chunks = []
-            
-        all_chunks = chunks + yf_chunks
+        if isinstance(sec_chunks, Exception):
+            sec_chunks = []
+
+        all_chunks = chunks + yf_chunks + sec_chunks
+        logger.info(
+            f"[node_web_fetch] {state['ticker']} → "
+            f"{len(chunks)} web + {len(yf_chunks)} yfinance + {len(sec_chunks)} SEC "
+            f"= {len(all_chunks)} total"
+        )
     except Exception as e:
+        logger.error(f"[node_web_fetch] unexpected error: {e}")
         all_chunks = []
-        fin_context = None
 
     return {
         **state,
