@@ -266,6 +266,7 @@ def _generate_llm_content(ticker: str, sentiment: str, drivers: list, risks: lis
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
+            response_format={"type": "json_object"},
             temperature=0.2,
             max_tokens=1024,
         )

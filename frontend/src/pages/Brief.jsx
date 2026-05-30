@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import PipelineVisualizer from '../components/PipelineVisualizer';
@@ -20,6 +20,8 @@ export default function Brief() {
     setIsAnimationDone(true);
   }, []);
 
+  const fetchInitiated = useRef(null);
+
   // When both the fetch is resolved AND the animation is finished, reveal data
   useEffect(() => {
     if (isDataReady && isAnimationDone) {
@@ -28,6 +30,9 @@ export default function Brief() {
   }, [isDataReady, isAnimationDone]);
 
   useEffect(() => {
+    if (fetchInitiated.current === ticker) return;
+    fetchInitiated.current = ticker;
+
     const fetchBrief = async () => {
       try {
         setLoading(true);
