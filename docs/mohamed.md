@@ -76,14 +76,14 @@ Call 5 → Format to final JSON schema (Contract D)
 - [x] Tested NVDA, TSLA, AMD — all three producing valid enriched briefs
 - [x] Stable across 3 consecutive runs (10/14/10 chunks despite 502s)
 
-### Phase 4 — API & Demo Prep
-- [ ] `api/main.py` — FastAPI app, CORS, lifespan, health check
-- [ ] `api/routes/brief.py` — `POST /brief/{ticker}` with cache check first
-- [ ] `api/routes/compare.py` — `POST /compare` via `asyncio.gather`
-- [ ] `api/cache.py` — pre-run NVDA, TSLA, AMD and store enriched briefs
-- [ ] Error handling — Bright Data fallback, synthesis failure response
-- [ ] Latency profiling — full enriched brief < 35s
-- [ ] Demo run clean ×3
+### Phase 4 — API & Demo Prep ✅
+- [x] `api/main.py` — FastAPI app, CORS, lifespan, health check
+- [x] `api/routes/brief.py` — `POST /brief/{ticker}` with cache check first
+- [x] `api/routes/compare.py` — `POST /compare` via `asyncio.gather`
+- [x] `api/cache.py` — pre-run NVDA, TSLA, AMD and store enriched briefs
+- [x] Error handling — Bright Data fallback, synthesis failure response
+- [x] Latency profiling — full enriched brief < 35s
+- [x] Demo run clean ×3
 
 ---
 

@@ -68,11 +68,22 @@ async def get_brief(
                 }
             )
 
+        is_degraded = "data_quality" in brief
+
+        if not is_degraded:
+            brief["data_quality"] = {
+                "status":             "healthy",
+                "web_chunks_fetched": brief.get("pre_synthesis_stats", {}).get("kept_count", "unknown"),
+                "cached_at":          None,
+                "cache_age_hours":    None,
+            }
+
         return JSONResponse(content={
             **brief,
             "_meta": {
                 "source":     "live",
                 "elapsed_ms": round(elapsed * 1000),
+                "degraded":   is_degraded,
             }
         })
 

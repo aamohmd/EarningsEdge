@@ -38,6 +38,25 @@ def get_cached(ticker: str) -> dict | None:
         return None
 
 
+def get_cached_with_meta(ticker: str) -> dict | None:
+    """Returns cached brief with freshness metadata attached."""
+    path = CACHE_DIR / f"{ticker.upper()}.json"
+    if not path.exists():
+        return None
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        mtime = datetime.fromtimestamp(path.stat().st_mtime)
+        age_hours = round((datetime.utcnow() - mtime).total_seconds() / 3600, 1)
+        data["_cache_meta"] = {
+            "cached_at":     mtime.isoformat(),
+            "age_hours":     age_hours,
+        }
+        return data
+    except Exception:
+        return None
+
+
 def set_cached(ticker: str, brief: dict) -> None:
     """Stores a brief in the cache."""
     path = CACHE_DIR / f"{ticker.upper()}.json"
