@@ -30,14 +30,14 @@ from openai import OpenAI
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
+    api_key=os.getenv("AIML_API_KEY"),
+    base_url="https://api.aimlapi.com/v1",
     http_client=httpx.Client(http2=False)
 )
 client_fast = client
 
-MODEL_FRONTIER = "llama-3.3-70b-versatile"
-MODEL_FAST     = "llama-3.1-8b-instant"
+MODEL_FRONTIER = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+MODEL_FAST     = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
 import time
 
@@ -51,6 +51,7 @@ def call_llm(system_prompt: str, user_prompt: str, model: str = MODEL_FRONTIER) 
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.2,
+                max_tokens=4096,
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
@@ -255,7 +256,7 @@ Quantitative interpretation rules — apply these exactly:
 - Revenue growth acceleration = BULL signal
 - Guidance above consensus = BULL signal
 
-Comparable quarter rule:
+Analyst sentiment rule:
 - analyst_sentiment must reflect the actual signal ratio — if bull signals outnumber bear signals 2:1 or more, return "bullish". If bear > bull, return "bearish". Otherwise "neutral".
 
 Respond ONLY with valid JSON. No explanation outside the JSON.
@@ -429,10 +430,8 @@ Output this exact JSON schema:
 
 def run_synthesis(chunks_input, ticker: str, financial_context: str = "") -> dict:
     if isinstance(chunks_input, dict) and "chunks" in chunks_input:
-        analyst_sentiment = chunks_input.get("analyst_sentiment", "neutral")
         chunks = chunks_input["chunks"]
     else:
-        analyst_sentiment = "neutral"
         chunks = chunks_input
 
     brief_id = str(uuid4())
@@ -463,5 +462,5 @@ def run_synthesis(chunks_input, ticker: str, financial_context: str = "") -> dic
     return call_5_format(
         chunks, classification, resolutions, coherence, draft,
         brief_id=brief_id, generated_at=generated_at, ticker=ticker,
-        analyst_sentiment=analyst_sentiment
+        analyst_sentiment=draft.get("analyst_sentiment", "neutral")
     )
