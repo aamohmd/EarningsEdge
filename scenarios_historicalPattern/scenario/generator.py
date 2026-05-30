@@ -26,20 +26,15 @@ logger = logging.getLogger(__name__)
 
 
 def _get_openai_client():
-    aiml_key = os.getenv("AIML_API_KEY")
-    if aiml_key:
-        return OpenAI(
-            api_key=aiml_key,
-            base_url="https://api.aimlapi.com/v1",
-            http_client=httpx.Client(http2=False)
-        )
-    return OpenAI()
+    return OpenAI(
+        api_key=os.getenv("AIML_API_KEY"),
+        base_url="https://api.aimlapi.com/v1",
+        http_client=httpx.Client(http2=False)
+    )
 
 
 def _get_model():
-    if os.getenv("AIML_API_KEY"):
-        return "meta-llama/Llama-3.3-70B-Instruct-Turbo"
-    return "gpt-4o-mini"
+    return "meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
 
 def _avg_weight(signals: list, source_map: dict, fallback: float = 0.9) -> float:
