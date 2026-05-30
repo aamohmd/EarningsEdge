@@ -1,3 +1,19 @@
+"""
+agent/nodes/synthesis.py
+
+5-call LLM reasoning chain that produces a structured JSON brief from classified chunks.
+
+  Call 0 — Detect contradictions between all chunk pairs
+  Call 1 — Classify each chunk: bull_signal / bear_signal / risk_flag / neutral / contradicted
+  Call 2 — Resolve flagged contradictions — pick the more authoritative source
+  Call 3 — Draft bull, bear, and risk sections independently
+  Call 4 — Coherence check — fix anything appearing in both bull and bear
+  Call 5 — Format to final JSON schema (Contract D)
+
+Input:  pre_synthesis output {chunks, analyst_sentiment, ...} or raw chunk list
+Output: structured brief matching Contract D schema
+"""
+
 import json
 import httpx
 import os
@@ -14,14 +30,14 @@ from openai import OpenAI
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
+    api_key=os.getenv("AIML_API_KEY"),
+    base_url="https://api.aimlapi.com/v1",
     http_client=httpx.Client(http2=False)
 )
 client_fast = client
 
-MODEL_FRONTIER = "llama-3.3-70b-versatile"
-MODEL_FAST     = "llama-3.1-8b-instant"
+MODEL_FRONTIER = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+MODEL_FAST     = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
 import time
 
@@ -35,6 +51,7 @@ def call_llm(system_prompt: str, user_prompt: str, model: str = MODEL_FRONTIER) 
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.2,
+                max_tokens=4096,
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
@@ -173,6 +190,7 @@ Rules for resolution — apply them strictly in this order:
    It is NEVER valid when one claim directly negates another claim about the same event.
 
 You MUST resolve every contradiction pair listed. Return exactly as many resolutions as pairs in the input.
+Never pick a winner based on implication, tone, or which claim seems stronger — only source authority and time period rules apply.
 
 Respond ONLY with valid JSON. No explanation outside the JSON.
 
@@ -193,7 +211,7 @@ Format:
     result = parse_json(call_llm(system, f"Resolve ALL {len(pairs)} contradiction pair(s) for {ticker}. You must return exactly {len(pairs)} resolution(s).\n\n{pairs_text}"))
     return result.get("resolutions", [])
 
-def call_3_draft(chunks: list, classification: dict, resolutions: list, ticker: str, pre_label_map: dict) -> dict:
+def call_3_draft(chunks: list, classification: dict, resolutions: list, ticker: str, pre_label_map: dict, financial_context: str = "") -> dict:
     label_map = {c["id"]: c["label"] for c in classification["classified_chunks"]}
 
     discarded = set()
@@ -229,6 +247,18 @@ Writing rules:
 - Each section: 2-4 sentences maximum
 - Do NOT mention the same fact in both bull and bear sections
 
+Quantitative interpretation rules — apply these exactly:
+- Short interest below 5% of float = BULL signal (low bearish positioning, limited downside pressure). Never put low short interest in the bear section.
+- Short interest above 20% of float = BEAR signal (heavy short positioning, squeeze risk)
+- PEG ratio below 1.0 = BULL signal (undervalued relative to growth rate)
+- Forward P/E below sector average = BULL signal
+- Accelerating earnings beats (surprise % increasing quarter over quarter) = BULL signal
+- Revenue growth acceleration = BULL signal
+- Guidance above consensus = BULL signal
+
+Analyst sentiment rule:
+- analyst_sentiment must reflect the actual signal ratio — if bull signals outnumber bear signals 2:1 or more, return "bullish". If bear > bull, return "bearish". Otherwise "neutral".
+
 Respond ONLY with valid JSON. No explanation outside the JSON.
 
 Format:
@@ -252,6 +282,9 @@ RISK FLAGS:
 
 RESOLVED CONTRADICTIONS (for context):
 {json.dumps(resolutions, indent=2) if resolutions else 'None'}"""
+
+    if financial_context:
+        user += f"\n\n{financial_context}"
 
     return parse_json(call_llm(system, user))
 
@@ -317,6 +350,11 @@ Rules:
 1. Each signal = one specific, concrete claim. Split multi-claim sentences into separate signals.
 2. Assign source_id to the chunk the fact ORIGINALLY came from using the CHUNK REFERENCE.
 3. Use the brief_id and generated_at values exactly as provided.
+4. comparable_quarter MUST be a past historical quarter that resembles the current setup.
+   It must NEVER be the current quarter or any future quarter.
+   Valid examples: "Q2 2023", "Q3 2021", "Q4 2022"
+   If no clear historical parallel exists, use null.
+5. risk_flags must be objects with text, source_id, and source_type — not plain strings.
 
 Respond ONLY with valid JSON matching the exact schema. No text outside the JSON."""
 
@@ -357,7 +395,7 @@ Output this exact JSON schema:
     {{"text": "one specific claim", "source_id": "chunk_id that this fact came from", "source_type": "filing|transcript|news"}}
   ],
   "analyst_sentiment": "bullish|neutral|bearish",
-  "comparable_quarter": "REQUIRED: 'Q[1-4] YYYY' format only. e.g. 'Q3 2023'. Infer this from the context if possible.",
+  "comparable_quarter": "a PAST historical quarter e.g. Q2 2023 — NEVER the current or future quarter — null if no clear parallel",
   "sources": {json.dumps(sources)},
   "contradictions_resolved": [
     {{"chunk_a": "string", "chunk_b": "string", "claim_a": "string", "claim_b": "string", "resolution": "string"}}
@@ -390,12 +428,10 @@ Output this exact JSON schema:
 
     return result
 
-def run_synthesis(chunks_input, ticker: str) -> dict:
+def run_synthesis(chunks_input, ticker: str, financial_context: str = "") -> dict:
     if isinstance(chunks_input, dict) and "chunks" in chunks_input:
-        analyst_sentiment = chunks_input.get("analyst_sentiment", "neutral")
         chunks = chunks_input["chunks"]
     else:
-        analyst_sentiment = "neutral"
         chunks = chunks_input
 
     brief_id = str(uuid4())
@@ -420,11 +456,11 @@ def run_synthesis(chunks_input, ticker: str) -> dict:
             existing_pairs.add(key)
 
     resolutions = call_2_resolve(chunks, classification, ticker)
-    draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map)
+    draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map, financial_context=financial_context)
     coherence = call_4_coherence(draft, ticker)
     
     return call_5_format(
         chunks, classification, resolutions, coherence, draft,
         brief_id=brief_id, generated_at=generated_at, ticker=ticker,
-        analyst_sentiment=analyst_sentiment
+        analyst_sentiment=draft.get("analyst_sentiment", "neutral")
     )

@@ -17,7 +17,7 @@ sqlalchemy>=2.0.25
 pgvector>=0.2.4
 
 # Data fetching
-httpx>=0.26.0
+httpx[http2]>=0.26.0
 beautifulsoup4>=4.12.3
 yfinance>=0.2.36
 

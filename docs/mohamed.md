@@ -1,26 +1,21 @@
-# Mohamed — Retrieval Brain
+# Mohamed — Retrieval Brain & Pipeline
 
 > [!IMPORTANT]
-> The hardest parts live here. Everything downstream depends on brief quality.
+> Scope revised: one person, demo-focused. RAG skipped for demo. Pipeline is web_fetch → pre_synthesis → synthesis → API.
 
 | File | Responsibility |
 |------|---------------|
-| `agent/graph.py` | LangGraph graph definition — all nodes wired |
-| `agent/nodes/router.py` | Source selection based on ticker + days to earnings |
-| `agent/nodes/web_fetch.py` | SERP API + Web Unlocker — parallel async calls |
-| `agent/nodes/rag_node.py` | Retrieval with recency filter + ticker boosting |
-| `agent/nodes/pre_synthesis.py` | Dedup, recency weighting, contradiction flagging |
-| `agent/nodes/synthesis.py` | 5-step reasoning chain → structured JSON brief |
-| `rag/retriever.py` | pgvector + BM25 fusion via RRF |
-| `rag/reranker.py` | Cross-encoder reranking scoped to ticker |
-| `rag/recency.py` | Hard date filters per content type |
+| `agent/graph.py` | Wires web_fetch → pre_synthesis → synthesis |
+| `agent/nodes/web_fetch.py` | SERP API + Web Unlocker — parallel async calls ✅ |
+| `agent/nodes/pre_synthesis.py` | Dedup, recency weighting, contradiction flagging ✅ |
+| `agent/nodes/synthesis.py` | 5-step reasoning chain → structured JSON brief ✅ |
+| `intelligence/yfinance.py` | EPS, revenue, P/E — injects real numbers into synthesis |
 | `api/main.py` | FastAPI app |
 | `api/routes/brief.py` | `POST /brief/{ticker}` |
 | `api/routes/compare.py` | `POST /compare` — asyncio parallel brief pair |
-| `api/routes/signals.py` | `GET /signals/{ticker}` |
-| `api/cache.py` | Pre-cached enriched briefs for demo tickers |
+| `api/cache.py` | Pre-cached briefs for NVDA, TSLA, AMD |
 
-## The Hard Parts
+## The Hard Parts (done)
 
 ### 1. Pre-synthesis conflict resolution
 
@@ -28,7 +23,6 @@ Before the LLM writes a single word, incoming chunks need to be classified
 and contradictions surfaced explicitly:
 
 ```python
-# Each chunk gets a label before synthesis
 {
   "chunk": "Margins improved 2.3% QoQ...",
   "source": "10-Q filing",
@@ -39,67 +33,55 @@ and contradictions surfaced explicitly:
 ```
 
 The synthesis prompt then reasons *over* the contradiction, not through it.
-Skip this step and the brief will be internally inconsistent in ways that are
-hard to spot during the demo but obvious to a finance reader.
 
 ### 2. Synthesis is a reasoning chain, not a single prompt
 
 ```
+Call 0 → Detect contradiction pairs across all chunks
 Call 1 → Classify each chunk: bull / bear / risk / neutral / contradicted
 Call 2 → Resolve flagged contradictions — pick the more authoritative source
 Call 3 → Generate bull section, bear section, risk section independently
 Call 4 → Coherence check — flag anything appearing in both bull and bear
-Call 5 → Format to final JSON schema
-```
-
-One prompt will not produce analyst-quality output. Five calls will.
-Start building this early with mock context before retrieval is wired.
-
-### 3. RAG scope needs explicit constraints for this use case
-
-Standard similarity retrieval is wrong here. Apply before ranking:
-
-```python
-RECENCY_FILTERS = {
-    "news":        timedelta(days=30),
-    "filings":     timedelta(days=180),   # last 2 quarters
-    "transcripts": timedelta(days=365),   # last 4 quarters
-    "hiring":      timedelta(days=60),
-}
-
-# BM25 must boost ticker symbol matches
-# or AMD content contaminates NVDA queries
-BM25_TICKER_BOOST = 3.0
+Call 5 → Format to final JSON schema (Contract D)
 ```
 
 ## Roadmap
 
-### Phase 1 — Foundation
+### Phase 1 — Foundation ✅
 - [x] `mock/nvda_chunks.py` with realistic contradicting chunks
-- [x] Synthesis prompt iteration on mock data (goal: brief that reads like an analyst wrote it)
+- [x] Synthesis prompt iteration on mock data
 - [x] Confirm schema [D] with Adil — no changes after this
 
-### Phase 2: Core Implementation
+### Phase 2 — Core Implementation ✅
 - [x] `pre_synthesis.py` — dedup, recency weight, contradiction flag
 - [x] `synthesis.py` — 5-call reasoning chain
 - [x] Test synthesis on mock pre-synthesis output
 
-### Phase 3: Integration
-- [ ] `web_fetch.py` — SERP API + Web Unlocker (async parallel)
-- [ ] `rag_node.py` — recency filters + ticker boosting
-- [ ] Wire full pipeline: router → fetch → rag → pre_synthesis → synthesis
-- [ ] **Milestone**: NVDA → raw brief JSON 
+### Phase 3 — Integration (demo-focused, no RAG)
 
-### Phase 4: Full Pipeline
-- [ ] FastAPI routes: `/brief`, `/compare`, `/signals`
-- [ ] `/compare`: `asyncio.gather` on two parallel runs
-- [ ] Call `enricher.py` after synthesis — receive [E]
-- [ ] MCP Server integration
-- [ ] Integration test with both teammates
+**Today**
+- [x] `web_fetch.py` — SERP API + Web Unlocker, full article fetch, filters applied
+- [x] `graph.py` — wire web_fetch → pre_synthesis → synthesis, test NVDA live brief
+- [x] `yfinance.py` — EPS, revenue, P/E injected into synthesis context
 
-### Phase 5: Polish & Demo Prep
+**Tomorrow**
+- [ ] `api/main.py` + `api/routes/brief.py` — `POST /brief/{ticker}`
+- [ ] `api/routes/compare.py` — `asyncio.gather` on two parallel runs
+- [ ] `api/cache.py` — pre-run NVDA, TSLA, AMD and store results
+
+### Phase 4 — Demo Prep
 - [ ] Error handling + fallbacks for Bright Data failures
-- [ ] Graceful DB fallback (e.g., if ticker has no historical data)
-- [ ] `cache.py` — pre-run and store NVDA, TSLA, AMD
-- [ ] Latency profiling — full enriched brief < 35s
+- [ ] Latency profiling — full brief < 35s
 - [ ] Demo run clean ×3
+
+---
+
+**Cut entirely**
+- ~~`rag_node.py`~~ — no DB for demo, web_fetch gives sufficient signal
+- ~~`schema.sql` / `seed_db.py` / `embedder.py`~~ — Ilyas's scope, skipped
+- ~~`sec_filings.py`~~ — not demo-critical
+- ~~`earnings_calendar.py`~~ — not needed
+- ~~`hiring_signals.py`~~ — LinkedIn scraping, too slow
+- ~~`polygon.py`~~ — duplicates web_fetch
+- ~~`monitor.py` / `scheduler.py`~~ — background jobs, demo doesn't need
+- ~~`transcript_cleaner.py`~~ — SA paywall blocking
