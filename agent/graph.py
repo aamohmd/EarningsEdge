@@ -119,12 +119,58 @@ async def node_pre_synthesis(state: PipelineState) -> PipelineState:
         state["raw_chunks"]
     )
     
-    if result["stats"]["kept_count"] < 5:
-        logger.warning(
-            f"[node_pre_synthesis] only {result['stats']['kept_count']} chunks — "
-            f"below minimum threshold, pipeline may produce low quality brief"
-        )
-        
+    kept = result["stats"]["kept_count"]
+
+    if kept < 5:
+        from api.cache import get_cached_with_meta
+        cached = get_cached_with_meta(state["ticker"])
+
+        if cached:
+            cache_meta = cached.pop("_cache_meta", {})
+            enriched = {
+                **cached,
+                "data_quality": {
+                    "status":             "degraded",
+                    "reason":             "live web fetch returned insufficient data",
+                    "web_chunks_fetched": kept,
+                    "yfinance_chunks":    sum(
+                        1 for c in state["raw_chunks"]
+                        if c.get("id", "").startswith("yf_")
+                    ),
+                    "cached_at":          cache_meta.get("cached_at"),
+                    "cache_age_hours":    cache_meta.get("age_hours"),
+                    "recommendation":     "data is stale — retry in a few minutes",
+                }
+            }
+            logger.warning(
+                f"[node_pre_synthesis] degraded fetch for {state['ticker']} "
+                f"({kept} chunks) — serving cache aged {cache_meta.get('age_hours')}h"
+            )
+            return {
+                **state,
+                "clean_chunks":    [],
+                "enriched_brief":  enriched,
+                "synthesis_error": f"degraded — {kept} chunks fetched, cache served",
+            }
+
+        else:
+            # No cache available — let synthesis run on yfinance-only chunks
+            # Flag it so the response carries a warning
+            logger.warning(
+                f"[node_pre_synthesis] degraded fetch for {state['ticker']} "
+                f"({kept} chunks) — no cache, running yfinance-only synthesis"
+            )
+            return {
+                **state,
+                "clean_chunks":      result["chunks"],
+                "discarded_chunks":  result["discarded"],
+                "analyst_sentiment": result["analyst_sentiment"],
+                "pre_synthesis_stats": {
+                    **result["stats"],
+                    "degraded": True,
+                },
+            }
+            
     return {
         **state,
         "clean_chunks":       result["chunks"],
@@ -136,6 +182,10 @@ async def node_pre_synthesis(state: PipelineState) -> PipelineState:
 
 
 async def node_synthesis(state: PipelineState) -> PipelineState:
+    # Skip if fallback already resolved
+    if state.get("enriched_brief") is not None:
+        return state
+
     if not state["clean_chunks"]:
         return {
             **state,
@@ -187,6 +237,10 @@ def _enrich_stub(raw_brief: dict) -> dict:
 
 
 async def node_enrich(state: PipelineState) -> PipelineState:
+    # Skip if fallback already resolved
+    if state.get("enriched_brief") is not None and state.get("synthesis_error"):
+        return state
+
     if state.get("raw_brief") is None:
         return {
             **state,

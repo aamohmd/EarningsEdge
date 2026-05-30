@@ -1,6 +1,7 @@
-# Enriched Brief [E] — Proposed Improvements
+# Adil's Tasks — Enriched Brief [E] Improvements
 
-> Improvements we can add to the JSON output to make it richer, more actionable, and more impressive for judges.
+> **Adil**: Here is your target list of schema improvements for the Intelligence Amplifier. 
+> These additions make the JSON output (Contract E) more actionable for the frontend. All of these belong in `scenarios_historicalPattern/`.
 
 ---
 
@@ -131,23 +132,6 @@
 
 ---
 
-## 6. Add Quantitative Grounding (yFinance / Polygon Data)
-
-**Why:** Adds hard financial numbers alongside the qualitative analysis. Makes it feel like a real analyst report.
-
-```json
-"quantitative_context": {
-  "current_price": 924.50,
-  "consensus_eps": 5.57,
-  "forward_pe": 42.3,
-  "revenue_growth_yoy": "122%",
-  "options_implied_move": "±9.2%",
-  "short_interest_pct": "1.2%",
-  "data_source": "yfinance"
-}
-```
-
----
 
 ## 7. Add Sentiment Trend (Not Just Current State)
 
@@ -291,13 +275,6 @@
     "details": ["..."]
   },
 
-  "quantitative_context": {
-    "current_price": 924.50,
-    "consensus_eps": 5.57,
-    "forward_pe": 42.3,
-    "options_implied_move": "±9.2%"
-  },
-
   "sentiment_trend": {
     "current": "bullish",
     "direction": "improving",
@@ -332,7 +309,6 @@
 | 🟢 P0 | Confidence breakdown (show the math) | Low | High |
 | 🟢 P0 | Key triggers per scenario | Low | High |
 | 🟢 P0 | Verdict / TL;DR | Low | High |
-| 🟡 P1 | Quantitative grounding (yFinance) | Medium | High |
 | 🟡 P1 | Enriched historical matches (similarity factors + differences) | Medium | High |
 | 🟡 P1 | Risk matrix | Low | Medium |
 | 🟡 P1 | Signal quality metadata | Low | Medium |
@@ -342,3 +318,12 @@
 
 > [!TIP]
 > Start with P0 items — they're low effort, high impact, and will impress judges the most. P1 items should come in Phase 4-5 if time allows.
+
+---
+
+## Open Issues (flag to teammates)
+
+### Adil
+- [ ] Historical matches returning NVDA data for TSLA and AMD — pattern matcher not ticker-scoped
+- [ ] Scenario summaries copy-pasting signal text verbatim — needs analyst prose rewrite
+- [ ] Bull/bear confidence miscalibrated (equal scores on strongly bullish setups)

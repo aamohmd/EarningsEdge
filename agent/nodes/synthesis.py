@@ -457,7 +457,31 @@ def run_synthesis(chunks_input, ticker: str, financial_context: str = "") -> dic
 
     resolutions = call_2_resolve(chunks, classification, ticker)
     draft = call_3_draft(chunks, classification, resolutions, ticker, pre_label_map, financial_context=financial_context)
-    coherence = call_4_coherence(draft, ticker)
+    
+    # Skip Call 4 if no meaningful overlap between bull and bear sections
+    # Saves ~4-5s on clean outputs — which is most of the time
+    STOP_WORDS = {
+        "the", "a", "an", "is", "are", "was", "were", "has", "have",
+        "had", "will", "would", "could", "should", "be", "been", "being",
+        "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
+        "as", "by", "from", "that", "this", "it", "its", "their", "our"
+    }
+
+    bull_words = set(draft.get("bull_section", "").lower().split()) - STOP_WORDS
+    bear_words = set(draft.get("bear_section", "").lower().split()) - STOP_WORDS
+    overlap    = bull_words & bear_words
+
+    if len(overlap) > 5:
+        coherence = call_4_coherence(draft, ticker)
+    else:
+        print(f"  → Call 4 skipped (overlap={len(overlap)} words — sections are clean)")
+        coherence = {
+            "issues_found": False,
+            "issues":       [],
+            "bull_section": draft.get("bull_section", ""),
+            "bear_section": draft.get("bear_section", ""),
+            "risk_section": draft.get("risk_section", ""),
+        }
     
     return call_5_format(
         chunks, classification, resolutions, coherence, draft,

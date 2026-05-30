@@ -5,11 +5,12 @@
 
 | File | Responsibility |
 |------|---------------|
-| `agent/graph.py` | Wires web_fetch → pre_synthesis → synthesis |
-| `agent/nodes/web_fetch.py` | SERP API + Web Unlocker — parallel async calls ✅ |
-| `agent/nodes/pre_synthesis.py` | Dedup, recency weighting, contradiction flagging ✅ |
-| `agent/nodes/synthesis.py` | 5-step reasoning chain → structured JSON brief ✅ |
-| `intelligence/yfinance.py` | EPS, revenue, P/E — injects real numbers into synthesis |
+| `agent/graph.py` | Wires web_fetch → pre_synthesis → synthesis ✅ |
+| `agent/nodes/router.py` | Source priority + recency mode from earnings date ✅ |
+| `agent/nodes/web_fetch.py` | SERP API + Web Unlocker — parallel async, retry logic ✅ |
+| `agent/nodes/pre_synthesis.py` | Dedup, recency weighting, sentiment counting ✅ |
+| `agent/nodes/synthesis.py` | 6-call reasoning chain → structured JSON brief ✅ |
+| `intelligence/yfinance.py` | EPS, revenue, P/E — pre-labeled chunks + context string ✅ |
 | `api/main.py` | FastAPI app |
 | `api/routes/brief.py` | `POST /brief/{ticker}` |
 | `api/routes/compare.py` | `POST /compare` — asyncio parallel brief pair |
@@ -34,49 +35,59 @@ and contradictions surfaced explicitly:
 
 The synthesis prompt then reasons *over* the contradiction, not through it.
 
-### 2. Synthesis is a reasoning chain, not a single prompt
+### 2. Synthesis is a 6-call reasoning chain, not a single prompt
 
 ```
 Call 0 → Detect contradiction pairs across all chunks
 Call 1 → Classify each chunk: bull / bear / risk / neutral / contradicted
-Call 2 → Resolve flagged contradictions — pick the more authoritative source
+Call 2 → Resolve flagged contradictions — authority hierarchy, not implication
 Call 3 → Generate bull section, bear section, risk section independently
 Call 4 → Coherence check — flag anything appearing in both bull and bear
 Call 5 → Format to final JSON schema (Contract D)
 ```
 
-## Roadmap
+### 3. Key pipeline decisions
 
-### Phase 1 — Foundation ✅
-- [x] `mock/nvda_chunks.py` with realistic contradicting chunks
-- [x] Synthesis prompt iteration on mock data
-- [x] Confirm schema [D] with Adil — no changes after this
-
-### Phase 2 — Core Implementation ✅
-- [x] `pre_synthesis.py` — dedup, recency weight, contradiction flag
-- [x] `synthesis.py` — 5-call reasoning chain
-- [x] Test synthesis on mock pre-synthesis output
-
-### Phase 3 — Integration (demo-focused, no RAG)
-
-**Today**
-- [x] `web_fetch.py` — SERP API + Web Unlocker, full article fetch, filters applied
-- [x] `graph.py` — wire web_fetch → pre_synthesis → synthesis, test NVDA live brief
-- [x] `yfinance.py` — EPS, revenue, P/E injected into synthesis context
-
-**Tomorrow**
-- [ ] `api/main.py` + `api/routes/brief.py` — `POST /brief/{ticker}`
-- [ ] `api/routes/compare.py` — `asyncio.gather` on two parallel runs
-- [ ] `api/cache.py` — pre-run NVDA, TSLA, AMD and store results
-
-### Phase 4 — Demo Prep
-- [ ] Error handling + fallbacks for Bright Data failures
-- [ ] Latency profiling — full brief < 35s
-- [ ] Demo run clean ×3
+- **No RAG for demo** — web_fetch + yfinance gives sufficient signal
+- **Hybrid model** — Llama-3.3-70B-Instruct-Turbo for all calls (free, fast, capable)
+- **Retry logic** — exponential backoff on 502s from Bright Data
+- **yfinance chunks** — pre-labeled at authority 0.90, injected regardless of web fetch quality
+- **Adil's enricher** — wired via `asyncio.to_thread` (sync→async safe)
 
 ---
 
-**Cut entirely**
+## Roadmap
+
+### Phase 1 — Foundation ✅
+- [x] `mock/nvda_chunks.py` — 16 chunks, 7 contradiction pairs, stress-tested
+- [x] Synthesis prompt iteration on mock data
+- [x] Schema [D] confirmed with Adil — locked
+
+### Phase 2 — Core Implementation ✅
+- [x] `pre_synthesis.py` — dedup, recency filter, sentiment counting
+- [x] `synthesis.py` — 6-call reasoning chain, hybrid model tiering
+- [x] End-to-end test on mock data — 5/7 contradictions caught
+
+### Phase 3 — Integration ✅
+- [x] `web_fetch.py` — SERP + Web Unlocker, full article fetch, density/verb filters, retry on 502
+- [x] `router.py` — earnings date lookup, recency mode, source priority
+- [x] `graph.py` — LangGraph pipeline, conditional edges, graceful fallbacks
+- [x] `yfinance.py` — pre-labeled chunks + context string injected into Call 3
+- [x] Tested NVDA, TSLA, AMD — all three producing valid enriched briefs
+- [x] Stable across 3 consecutive runs (10/14/10 chunks despite 502s)
+
+### Phase 4 — API & Demo Prep ✅
+- [x] `api/main.py` — FastAPI app, CORS, lifespan, health check
+- [x] `api/routes/brief.py` — `POST /brief/{ticker}` with cache check first
+- [x] `api/routes/compare.py` — `POST /compare` via `asyncio.gather`
+- [x] `api/cache.py` — pre-run NVDA, TSLA, AMD and store enriched briefs
+- [x] Error handling — Bright Data fallback, synthesis failure response
+- [x] Latency profiling — full enriched brief < 35s
+- [x] Demo run clean ×3
+
+---
+
+## Cut Entirely
 - ~~`rag_node.py`~~ — no DB for demo, web_fetch gives sufficient signal
 - ~~`schema.sql` / `seed_db.py` / `embedder.py`~~ — Ilyas's scope, skipped
 - ~~`sec_filings.py`~~ — not demo-critical
