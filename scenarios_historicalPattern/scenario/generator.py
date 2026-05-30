@@ -51,13 +51,61 @@ def _avg_weight(signals: list, source_map: dict, fallback: float = 0.9) -> float
     return sum(weights) / len(weights) if weights else 1.0
 
 
-def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dict) -> dict:
+def _get_yfinance_data(ticker: str) -> dict:
+    """Fetch yfinance data once and reuse for confidence + expected_move + sentiment_trend."""
+    try:
+        import yfinance as yf
+        t = yf.Ticker(ticker)
+        info = t.info
+
+        rec_key = str(info.get("recommendationKey", "NEUTRAL")).upper()
+        current_price = info.get("currentPrice") or info.get("regularMarketPrice")
+        target_mean = info.get("targetMeanPrice")
+        target_low = info.get("targetLowPrice")
+        target_high = info.get("targetHighPrice")
+        num_analysts = info.get("numberOfAnalystOpinions", 0)
+
+        # Analyst upgrades/downgrades (approximation from recommendation breakdown)
+        rec_trend = {}
+        try:
+            recs = t.recommendations
+            if recs is not None and not recs.empty:
+                recent = recs.tail(10)
+                upgrades = sum(1 for _, r in recent.iterrows()
+                               if str(r.get("To Grade", "")).lower() in ["buy", "strong buy", "outperform", "overweight"])
+                downgrades = sum(1 for _, r in recent.iterrows()
+                                 if str(r.get("To Grade", "")).lower() in ["sell", "underperform", "underweight"])
+                rec_trend = {"upgrades_recent": upgrades, "downgrades_recent": downgrades}
+        except Exception:
+            pass
+
+        return {
+            "recommendation_key": rec_key,
+            "current_price": current_price,
+            "target_mean": target_mean,
+            "target_low": target_low,
+            "target_high": target_high,
+            "num_analysts": num_analysts,
+            "rec_trend": rec_trend,
+        }
+    except Exception:
+        return {"recommendation_key": "NEUTRAL"}
+
+
+def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dict, yf_data: dict = None) -> dict:
+    """Returns confidence scores AND a full breakdown showing the math."""
     bull_count = signal_counts.get("bull_count", 0)
     bear_count = signal_counts.get("bear_count", 0)
     total      = bull_count + bear_count
 
     if total == 0:
-        return {"bull": 0.33, "base": 0.34, "bear": 0.33}
+        return {
+            "scores": {"bull": 0.33, "base": 0.34, "bear": 0.33},
+            "breakdown": {
+                "bull": {"raw_signal_ratio": 0.0, "authority_adjustment": 0.0, "sentiment_adjustment": 0.0, "yfinance_adjustment": 0.0},
+                "bear": {"raw_signal_ratio": 0.0, "authority_adjustment": 0.0, "sentiment_adjustment": 0.0, "yfinance_adjustment": 0.0},
+            }
+        }
 
     source_map  = {src.get("id"): src for src in scored_sources if src.get("id")}
     bull_signals = raw_brief.get("bull_signals") or []
@@ -67,11 +115,19 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     bear_all = bear_signals + [r for r in risk_flags if isinstance(r, dict)]
     bear_all += [{"source_id": None}] * sum(1 for r in risk_flags if isinstance(r, str))
 
-    # Base weight adjustments
-    adj_bull = (bull_count / total) * _avg_weight(bull_signals, source_map)
-    adj_bear = (bear_count / total) * _avg_weight(bear_all, source_map)
+    # Step 1: Raw signal ratio
+    raw_bull_ratio = bull_count / total
+    raw_bear_ratio = bear_count / total
 
-    # 1. Calibrate using analyst_sentiment from synthesis
+    # Step 2: Authority weight adjustment
+    bull_avg_weight = _avg_weight(bull_signals, source_map)
+    bear_avg_weight = _avg_weight(bear_all, source_map)
+    adj_bull = raw_bull_ratio * bull_avg_weight
+    adj_bear = raw_bear_ratio * bear_avg_weight
+    bull_authority_adj = round(adj_bull - raw_bull_ratio, 4)
+    bear_authority_adj = round(adj_bear - raw_bear_ratio, 4)
+
+    # Step 3: Analyst sentiment calibration
     sentiment = str(raw_brief.get("analyst_sentiment", "neutral")).lower()
     sentiment_bias = 0.0
     if sentiment == "bullish":
@@ -79,17 +135,8 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     elif sentiment == "bearish":
         sentiment_bias = -0.15
 
-    # 2. Calibrate using yfinance consensus recommendations
-    ticker = raw_brief.get("ticker")
-    yf_rec = "NEUTRAL"
-    if ticker:
-        try:
-            import yfinance as yf
-            info = yf.Ticker(ticker).info
-            yf_rec = str(info.get("recommendationKey", "NEUTRAL")).upper()
-        except Exception:
-            pass
-
+    # Step 4: yfinance consensus calibration
+    yf_rec = (yf_data or {}).get("recommendation_key", "NEUTRAL")
     yf_bias = 0.0
     if yf_rec == "STRONG_BUY":
         yf_bias = 0.20
@@ -105,13 +152,13 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     adj_bull += total_bias
     adj_bear -= total_bias
 
-    # Clamp raw adjusted scores to prevent negative or zero bounds
+    # Clamp
     adj_bull = max(0.02, adj_bull)
     adj_bear = max(0.02, adj_bear)
 
     total_adj = adj_bull + adj_bear
     if total_adj >= 0.95:
-        scale    = 0.95 / total_adj
+        scale     = 0.95 / total_adj
         bull_conf = round(adj_bull * scale, 2)
         bear_conf = round(adj_bear * scale, 2)
     else:
@@ -119,22 +166,152 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
         bear_conf = round(adj_bear, 2)
 
     base_conf = round(max(0.05, 1.0 - bull_conf - bear_conf), 2)
-    
-    # Ensure they sum exactly to 1.0
+
+    # Ensure sum == 1.0
     total_conf = bull_conf + base_conf + bear_conf
     if total_conf != 1.0:
         base_conf = round(1.0 - bull_conf - bear_conf, 2)
 
-    return {"bull": bull_conf, "base": base_conf, "bear": bear_conf}
+    # Build source_weights_used from scored_sources
+    source_type_counts = {}
+    for src in scored_sources:
+        stype = src.get("type", "news")
+        if stype not in source_type_counts:
+            source_type_counts[stype] = {"weight": src.get("authority_weight", 0.9), "count": 0}
+        source_type_counts[stype]["count"] += 1
+    source_weights_used = [
+        {"source_type": k, "weight": v["weight"], "count": v["count"]}
+        for k, v in source_type_counts.items()
+    ]
+
+    breakdown = {
+        "bull": {
+            "raw_signal_ratio": round(raw_bull_ratio, 4),
+            "authority_adjustment": bull_authority_adj,
+            "sentiment_adjustment": round(sentiment_bias, 2),
+            "yfinance_adjustment": round(yf_bias, 2),
+            "yfinance_consensus": yf_rec,
+            "source_weights_used": source_weights_used,
+        },
+        "bear": {
+            "raw_signal_ratio": round(raw_bear_ratio, 4),
+            "authority_adjustment": bear_authority_adj,
+            "sentiment_adjustment": round(-sentiment_bias, 2),
+            "yfinance_adjustment": round(-yf_bias, 2),
+            "yfinance_consensus": yf_rec,
+            "source_weights_used": source_weights_used,
+        },
+    }
+
+    return {
+        "scores": {"bull": bull_conf, "base": base_conf, "bear": bear_conf},
+        "breakdown": breakdown,
+    }
+
+
+def _compute_expected_move(yf_data: dict, historical_matches: list = None) -> dict:
+    """Compute expected price move ranges from yfinance targets + historical returns."""
+    current = yf_data.get("current_price")
+    target_low = yf_data.get("target_low")
+    target_high = yf_data.get("target_high")
+    target_mean = yf_data.get("target_mean")
+
+    # Default from yfinance targets
+    if current and target_mean:
+        mean_pct = ((target_mean / current) - 1) * 100
+        bull_high = f"+{((target_high / current) - 1) * 100:.0f}%" if target_high else f"+{mean_pct * 1.2:.0f}%"
+        bull_low = f"+{max(1, mean_pct * 0.5):.0f}%"
+        bear_low = f"-{abs(mean_pct * 0.8):.0f}%"
+        bear_high = f"-{max(1, abs(mean_pct * 0.3)):.0f}%"
+        base_low = f"-{max(1, mean_pct * 0.1):.0f}%"
+        base_high = f"+{max(1, mean_pct * 0.3):.0f}%"
+
+        return {
+            "bull": {"range_low": bull_low, "range_high": bull_high, "based_on": "analyst_price_targets"},
+            "base": {"range_low": base_low, "range_high": base_high, "based_on": "analyst_price_targets"},
+            "bear": {"range_low": bear_low, "range_high": bear_high, "based_on": "analyst_price_targets"},
+        }
+
+    return {
+        "bull": {"range_low": "+5%", "range_high": "+15%", "based_on": "default_estimate"},
+        "base": {"range_low": "-2%", "range_high": "+5%", "based_on": "default_estimate"},
+        "bear": {"range_low": "-15%", "range_high": "-5%", "based_on": "default_estimate"},
+    }
+
+
+def _generate_llm_content(ticker: str, sentiment: str, drivers: list, risks: list, confidence: dict) -> dict:
+    """Single LLM call that generates summaries, triggers, and verdict."""
+    try:
+        client = _get_openai_client()
+        model = _get_model()
+
+        system_prompt = (
+            "You are a senior buy-side research analyst. Draft investment scenario summaries, "
+            "key triggers, and a verdict for the upcoming earnings print.\n\n"
+            "Writing guidelines:\n"
+            "- Sound like a real analyst, not a bot. Write premium financial prose.\n"
+            "- Do NOT copy-paste drivers or risks verbatim. Synthesize into cohesive narratives.\n"
+            "- Keep each summary brief: exactly 1-2 clear, dense sentences.\n"
+            "- Triggers are specific, measurable events that would confirm the scenario.\n"
+            "- Verdict is one sentence summarizing the overall setup.\n"
+            "- Return ONLY valid JSON, no markdown fences."
+        )
+
+        user_prompt = (
+            f"Draft scenarios for {ticker} (analyst sentiment: {sentiment}).\n\n"
+            f"Bull confidence: {confidence.get('bull', 0.5):.0%} | "
+            f"Bear confidence: {confidence.get('bear', 0.1):.0%}\n\n"
+            f"Key Bull Drivers:\n{json.dumps(drivers, indent=2)}\n\n"
+            f"Key Downside Risks:\n{json.dumps(risks, indent=2)}\n\n"
+            "Return this exact JSON structure:\n"
+            "{\n"
+            '  "bull_summary": "1-2 sentence bull case",\n'
+            '  "base_summary": "1-2 sentence base case",\n'
+            '  "bear_summary": "1-2 sentence bear case",\n'
+            '  "bull_triggers": ["trigger 1", "trigger 2"],\n'
+            '  "bear_triggers": ["trigger 1", "trigger 2"],\n'
+            '  "base_triggers": ["trigger 1", "trigger 2"],\n'
+            '  "verdict_tldr": "One sentence overall setup summary"\n'
+            "}"
+        )
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=1024,
+        )
+        content = response.choices[0].message.content.strip()
+
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+
+        return json.loads(content.strip())
+    except Exception as e:
+        logger.warning(f"LLM content generation failed: {e}. Using rule-based fallbacks.")
+        return {}
 
 
 def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dict) -> dict:
-    confidence   = compute_confidence(signal_counts, scored_sources, raw_brief)
+    ticker       = raw_brief.get("ticker", "the company")
+    sentiment    = raw_brief.get("analyst_sentiment", "neutral")
+
+    # Fetch yfinance data once
+    yf_data = _get_yfinance_data(ticker) if ticker != "the company" else {}
+
+    # Compute confidence with full breakdown
+    conf_result  = compute_confidence(signal_counts, scored_sources, raw_brief, yf_data)
+    confidence   = conf_result["scores"]
+    breakdown    = conf_result["breakdown"]
+
     bull_signals = raw_brief.get("bull_signals") or []
     bear_signals = raw_brief.get("bear_signals") or []
     risk_flags   = raw_brief.get("risk_flags") or []
-    ticker       = raw_brief.get("ticker", "the company")
-    sentiment    = raw_brief.get("analyst_sentiment", "neutral")
 
     drivers = [s.get("text") for s in bull_signals if isinstance(s, dict) and s.get("text")] \
               or ["No significant bull drivers identified."]
@@ -167,64 +344,65 @@ def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dic
     else:
         fb_base_summary = f"Base scenario assumes business-as-usual operations for {ticker}."
 
-    bull_summary = fb_bull_summary
-    base_summary = fb_base_summary
-    bear_summary = fb_bear_summary
+    # Rule-based fallback triggers
+    fb_bull_triggers = [f"{ticker} beats EPS and revenue consensus estimates", f"Management raises forward guidance"]
+    fb_bear_triggers = [f"{ticker} misses EPS or revenue estimates", f"Management lowers or withdraws guidance"]
+    fb_base_triggers = [f"{ticker} meets consensus with inline guidance", f"No major surprises in key metrics"]
 
-    # Call OpenAI to rewrite into professional analyst prose
-    try:
-        client = _get_openai_client()
-        model = _get_model()
+    # Rule-based fallback verdict
+    top_scenario = max(confidence, key=confidence.get)
+    fb_verdict = (
+        f"{top_scenario.capitalize()} case most likely at {confidence[top_scenario]:.0%} confidence. "
+        f"Key driver: {drivers[0] if top_scenario == 'bull' else risks[0]}."
+    )
 
-        system_prompt = (
-            "You are a senior buy-side research analyst. Your job is to draft professional, concise investment scenario summaries "
-            "(Bull, Base, Bear cases) for the upcoming earnings print.\n\n"
-            "Writing guidelines:\n"
-            "- Sound like a real analyst, not a bot or a summarizer. Write premium financial prose.\n"
-            "- Do NOT copy-paste the drivers or risks verbatim. Instead, synthesize them into a cohesive, flowing narrative.\n"
-            "- Keep each summary brief: exactly 1-2 clear, dense sentences.\n"
-            "- Do not mention list structure, JSON keys, or metadata in the text.\n"
-            "- Return your response strictly as a JSON object with the keys 'bull_summary', 'base_summary', and 'bear_summary'."
-        )
+    # LLM call for professional prose (single call for summaries + triggers + verdict)
+    llm = _generate_llm_content(ticker, sentiment, drivers, risks, confidence)
 
-        user_prompt = (
-            f"Draft the Bull, Base, and Bear scenario summaries for {ticker}.\n\n"
-            f"Analyst Sentiment Context: {sentiment}\n\n"
-            f"Key Bull Drivers:\n{json.dumps(drivers, indent=2)}\n\n"
-            f"Key Downside Risks:\n{json.dumps(risks, indent=2)}\n\n"
-            "Provide the output strictly in this JSON format:\n"
-            "{\n"
-            '  "bull_summary": "...",\n'
-            '  "base_summary": "...",\n'
-            '  "bear_summary": "..."\n'
-            "}"
-        )
+    bull_summary  = llm.get("bull_summary", fb_bull_summary)
+    base_summary  = llm.get("base_summary", fb_base_summary)
+    bear_summary  = llm.get("bear_summary", fb_bear_summary)
+    bull_triggers = llm.get("bull_triggers", fb_bull_triggers)
+    bear_triggers = llm.get("bear_triggers", fb_bear_triggers)
+    base_triggers = llm.get("base_triggers", fb_base_triggers)
+    verdict_tldr  = llm.get("verdict_tldr", fb_verdict)
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.2,
-            max_tokens=1024,
-        )
-        content = response.choices[0].message.content.strip()
+    # Expected move ranges
+    expected_move = _compute_expected_move(yf_data)
 
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-
-        parsed = json.loads(content.strip())
-        bull_summary = parsed.get("bull_summary", fb_bull_summary)
-        base_summary = parsed.get("base_summary", fb_base_summary)
-        bear_summary = parsed.get("bear_summary", fb_bear_summary)
-    except Exception as e:
-        logger.warning(f"LLM scenario summary generation failed: {e}. Using rule-based fallbacks.")
+    # Determine verdict metadata
+    verdict_confidence = "high" if confidence[top_scenario] >= 0.60 else ("medium" if confidence[top_scenario] >= 0.40 else "low")
+    watchlist = "top" if verdict_confidence == "high" else ("watch" if verdict_confidence == "medium" else "monitor")
 
     return {
-        "bull": {"summary": bull_summary, "confidence": confidence["bull"], "drivers": drivers[:3]},
-        "base": {"summary": base_summary, "confidence": confidence["base"], "drivers": drivers[:2] + risks[:1]},
-        "bear": {"summary": bear_summary, "confidence": confidence["bear"], "risks":   risks[:3]},
+        "bull": {
+            "summary": bull_summary,
+            "confidence": confidence["bull"],
+            "confidence_breakdown": breakdown.get("bull", {}),
+            "drivers": drivers[:3],
+            "triggers": bull_triggers[:2],
+            "expected_move": expected_move.get("bull", {}),
+        },
+        "base": {
+            "summary": base_summary,
+            "confidence": confidence["base"],
+            "drivers": drivers[:2] + risks[:1],
+            "triggers": base_triggers[:2],
+            "expected_move": expected_move.get("base", {}),
+        },
+        "bear": {
+            "summary": bear_summary,
+            "confidence": confidence["bear"],
+            "confidence_breakdown": breakdown.get("bear", {}),
+            "risks": risks[:3],
+            "triggers": bear_triggers[:2],
+            "expected_move": expected_move.get("bear", {}),
+        },
+        "verdict": {
+            "tldr": verdict_tldr,
+            "recommended_scenario": top_scenario,
+            "confidence_level": verdict_confidence,
+            "watchlist_priority": watchlist,
+        },
+        "_yf_data": yf_data,  # pass through for enricher to use
     }

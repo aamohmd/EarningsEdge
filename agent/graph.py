@@ -255,8 +255,7 @@ async def node_enrich(state: PipelineState) -> PipelineState:
 
         full_brief = {
             **state["raw_brief"],
-            "scenarios":          enriched.get("scenarios", {}),
-            "historical_matches": enriched.get("historical_matches", []),
+            **enriched,
         }
 
         return {
