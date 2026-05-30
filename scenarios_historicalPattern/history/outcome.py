@@ -42,7 +42,6 @@ def retrieve_outcomes(matches: list, raw_brief: dict = None) -> list:
         bear_signals = [s.get("text", "") for s in raw_brief.get("bear_signals", []) if isinstance(s, dict)]
         current_setup_summary = f"Current setup has {len(bull_signals)} positive drivers and {len(bear_signals)} negative risks."
 
-    # Parse baseline outcomes
     enriched_base = []
     for match in matches:
         quarter          = match.get("quarter", "Unknown Quarter")
@@ -64,8 +63,6 @@ def retrieve_outcomes(matches: list, raw_brief: dict = None) -> list:
         if isinstance(return_5d, (int, float)):
             return_5d = f"{'+' if return_5d >= 0 else ''}{return_5d}%"
 
-        # Safe defaults
-        # Parse return_5d to float to make return_30d and surprise estimate reasonable
         try:
             r5_val = float(return_5d.replace("%", "").replace("+", "").strip())
         except ValueError:
@@ -95,7 +92,6 @@ def retrieve_outcomes(matches: list, raw_brief: dict = None) -> list:
             ]
         })
 
-    # LLM-based enrichment
     try:
         client = _get_openai_client()
         model = _get_model()
@@ -154,7 +150,6 @@ def retrieve_outcomes(matches: list, raw_brief: dict = None) -> list:
         parsed = json.loads(content.strip())
         llm_matches = parsed.get("enriched_matches", [])
 
-        # Merge LLM results back into enriched_base
         llm_map = {m.get("quarter"): m for m in llm_matches if m.get("quarter")}
         for m in enriched_base:
             match_llm = llm_map.get(m["quarter"])

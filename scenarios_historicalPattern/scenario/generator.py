@@ -65,7 +65,6 @@ def _get_yfinance_data(ticker: str) -> dict:
         target_high = info.get("targetHighPrice")
         num_analysts = info.get("numberOfAnalystOpinions", 0)
 
-        # Analyst upgrades/downgrades (approximation from recommendation breakdown)
         rec_trend = {}
         try:
             recs = t.recommendations
@@ -115,11 +114,9 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     bear_all = bear_signals + [r for r in risk_flags if isinstance(r, dict)]
     bear_all += [{"source_id": None}] * sum(1 for r in risk_flags if isinstance(r, str))
 
-    # Step 1: Raw signal ratio
     raw_bull_ratio = bull_count / total
     raw_bear_ratio = bear_count / total
 
-    # Step 2: Authority weight adjustment
     bull_avg_weight = _avg_weight(bull_signals, source_map)
     bear_avg_weight = _avg_weight(bear_all, source_map)
     adj_bull = raw_bull_ratio * bull_avg_weight
@@ -127,7 +124,6 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     bull_authority_adj = round(adj_bull - raw_bull_ratio, 4)
     bear_authority_adj = round(adj_bear - raw_bear_ratio, 4)
 
-    # Step 3: Analyst sentiment calibration
     sentiment = str(raw_brief.get("analyst_sentiment", "neutral")).lower()
     sentiment_bias = 0.0
     if sentiment == "bullish":
@@ -135,7 +131,6 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     elif sentiment == "bearish":
         sentiment_bias = -0.15
 
-    # Step 4: yfinance consensus calibration
     yf_rec = (yf_data or {}).get("recommendation_key", "NEUTRAL")
     yf_bias = 0.0
     if yf_rec == "STRONG_BUY":
@@ -147,12 +142,10 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
     elif yf_rec == "SELL":
         yf_bias = -0.10
 
-    # Combine biases
     total_bias = sentiment_bias + yf_bias
     adj_bull += total_bias
     adj_bear -= total_bias
 
-    # Clamp
     adj_bull = max(0.02, adj_bull)
     adj_bear = max(0.02, adj_bear)
 
@@ -167,12 +160,10 @@ def compute_confidence(signal_counts: dict, scored_sources: list, raw_brief: dic
 
     base_conf = round(max(0.05, 1.0 - bull_conf - bear_conf), 2)
 
-    # Ensure sum == 1.0
     total_conf = bull_conf + base_conf + bear_conf
     if total_conf != 1.0:
         base_conf = round(1.0 - bull_conf - bear_conf, 2)
 
-    # Build source_weights_used from scored_sources
     source_type_counts = {}
     for src in scored_sources:
         stype = src.get("type", "news")
@@ -216,7 +207,6 @@ def _compute_expected_move(yf_data: dict, historical_matches: list = None) -> di
     target_high = yf_data.get("target_high")
     target_mean = yf_data.get("target_mean")
 
-    # Default from yfinance targets
     if current and target_mean:
         mean_pct = ((target_mean / current) - 1) * 100
         bull_high = f"+{((target_high / current) - 1) * 100:.0f}%" if target_high else f"+{mean_pct * 1.2:.0f}%"
@@ -301,10 +291,8 @@ def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dic
     ticker       = raw_brief.get("ticker", "the company")
     sentiment    = raw_brief.get("analyst_sentiment", "neutral")
 
-    # Fetch yfinance data once
     yf_data = _get_yfinance_data(ticker) if ticker != "the company" else {}
 
-    # Compute confidence with full breakdown
     conf_result  = compute_confidence(signal_counts, scored_sources, raw_brief, yf_data)
     confidence   = conf_result["scores"]
     breakdown    = conf_result["breakdown"]
@@ -324,7 +312,6 @@ def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dic
             risks.append(r)
     risks = risks or ["No significant downside risks identified."]
 
-    # Rule-based fallback summaries
     if len(drivers) >= 2:
         fb_bull_summary = f"Strong growth prospects for {ticker} driven by: {drivers[0]} Additionally, {drivers[1]}."
     else:
@@ -344,19 +331,16 @@ def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dic
     else:
         fb_base_summary = f"Base scenario assumes business-as-usual operations for {ticker}."
 
-    # Rule-based fallback triggers
     fb_bull_triggers = [f"{ticker} beats EPS and revenue consensus estimates", f"Management raises forward guidance"]
     fb_bear_triggers = [f"{ticker} misses EPS or revenue estimates", f"Management lowers or withdraws guidance"]
     fb_base_triggers = [f"{ticker} meets consensus with inline guidance", f"No major surprises in key metrics"]
 
-    # Rule-based fallback verdict
     top_scenario = max(confidence, key=confidence.get)
     fb_verdict = (
         f"{top_scenario.capitalize()} case most likely at {confidence[top_scenario]:.0%} confidence. "
         f"Key driver: {drivers[0] if top_scenario == 'bull' else risks[0]}."
     )
 
-    # LLM call for professional prose (single call for summaries + triggers + verdict)
     llm = _generate_llm_content(ticker, sentiment, drivers, risks, confidence)
 
     bull_summary  = llm.get("bull_summary", fb_bull_summary)
@@ -367,10 +351,8 @@ def generate_scenarios(signal_counts: dict, scored_sources: list, raw_brief: dic
     base_triggers = llm.get("base_triggers", fb_base_triggers)
     verdict_tldr  = llm.get("verdict_tldr", fb_verdict)
 
-    # Expected move ranges
     expected_move = _compute_expected_move(yf_data)
 
-    # Determine verdict metadata
     verdict_confidence = "high" if confidence[top_scenario] >= 0.60 else ("medium" if confidence[top_scenario] >= 0.40 else "low")
     watchlist = "top" if verdict_confidence == "high" else ("watch" if verdict_confidence == "medium" else "monitor")
 

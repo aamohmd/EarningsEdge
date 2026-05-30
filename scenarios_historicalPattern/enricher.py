@@ -21,7 +21,6 @@ def _parse_iso_date(dt_str: str) -> datetime:
             return datetime.strptime(dt_str.strip(), fmt).replace(tzinfo=timezone.utc)
         except ValueError:
             pass
-    # Fallback to current time if unparseable
     return datetime.now(timezone.utc)
 
 
@@ -31,7 +30,6 @@ def enrich(raw_brief: dict) -> dict:
 
     start_time = time.time()
 
-    # Step 1: Run Scenario Engine
     try:
         scenarios_out = run_scenario_engine(raw_brief)
     except Exception as e:
@@ -48,7 +46,6 @@ def enrich(raw_brief: dict) -> dict:
             }
         }
 
-    # Extract temporary fields passed from generator
     verdict = scenarios_out.pop("verdict", {
         "tldr": "Base case assumed as fallback.",
         "recommended_scenario": "base",
@@ -57,14 +54,12 @@ def enrich(raw_brief: dict) -> dict:
     })
     yf_data = scenarios_out.pop("_yf_data", {})
 
-    # Step 2: Run Pattern Agent
     try:
         historical_matches = run_pattern_agent(raw_brief)
     except Exception as e:
         logger.error(f"Pattern agent failed: {e}", exc_info=True)
         historical_matches = []
 
-    # Step 3: Compute Signal Quality Metadata
     sources = raw_brief.get("sources", [])
     total_signals = len(raw_brief.get("bull_signals", [])) + len(raw_brief.get("bear_signals", [])) + len(raw_brief.get("risk_flags", []))
     
@@ -110,12 +105,9 @@ def enrich(raw_brief: dict) -> dict:
         "oldest_source": oldest_str,
     }
 
-    # Step 4: Contradiction Impact
     resolved = raw_brief.get("contradictions_resolved", [])
     contradictions_found = len(resolved)
     
-    # Calculate overall impact on bull/bear confidence if contradictions were resolved
-    # For NVDA or typical scenarios, if management quote overrides news delay, it maintains bull case.
     conf_impact = "neutral"
     if contradictions_found > 0:
         conf_impact = f"-0.05 on {verdict.get('recommended_scenario', 'bear')}"
@@ -136,7 +128,6 @@ def enrich(raw_brief: dict) -> dict:
         "details": details
     }
 
-    # Step 5: Sentiment Trend
     current_sent = raw_brief.get("analyst_sentiment", "neutral")
     direction = "stable"
     momentum = "neutral"
@@ -160,17 +151,14 @@ def enrich(raw_brief: dict) -> dict:
         "analyst_downgrades_30d": downgrades
     }
 
-    # Step 6: Risk Matrix
     risk_matrix = []
     risk_flags = raw_brief.get("risk_flags", [])
     bear_signals = raw_brief.get("bear_signals", [])
     
-    # Take up to 3 most important risks/bear signals
     raw_risks = [rf.get("text") for rf in risk_flags if isinstance(rf, dict) and rf.get("text")]
     raw_risks += [r for r in risk_flags if isinstance(r, str)]
     raw_risks += [bs.get("text") for bs in bear_signals if isinstance(bs, dict) and bs.get("text")]
     
-    # Deduplicate while preserving order
     seen_risks = set()
     dedup_risks = []
     for r in raw_risks:
@@ -178,7 +166,6 @@ def enrich(raw_brief: dict) -> dict:
             seen_risks.add(r)
             dedup_risks.append(r)
 
-    # Populate Risk Matrix
     prob_impacts = [
         {"probability": "medium", "impact": "high", "affected_revenue_pct": "~10%"},
         {"probability": "low", "impact": "medium", "affected_revenue_pct": "~5%"},
@@ -204,7 +191,6 @@ def enrich(raw_brief: dict) -> dict:
             "scenario_most_affected": "bear"
         })
 
-    # Step 7: Finish Timing
     latency_ms = int((time.time() - start_time) * 1000)
 
     return {
