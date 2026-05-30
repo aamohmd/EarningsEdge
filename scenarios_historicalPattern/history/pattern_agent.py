@@ -42,7 +42,7 @@ def run_pattern_agent(raw_brief: dict) -> list:
         return []
 
     try:
-        return retrieve_outcomes(matches)
+        return retrieve_outcomes(matches, raw_brief)
     except Exception as e:
         logger.error(f"Outcome retrieval failed: {e}", exc_info=True)
         return []
