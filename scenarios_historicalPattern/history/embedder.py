@@ -43,7 +43,9 @@ def _format_for_embedding(raw_brief: dict) -> str:
 
 def embed_brief(raw_brief: dict) -> list:
     try:
-        client   = OpenAI()
+        client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY")
+        )
         response = client.embeddings.create(
             input=[_format_for_embedding(raw_brief)],
             model="text-embedding-3-small",

@@ -372,6 +372,24 @@ async def run_pipeline(
         result = final_state.get("enriched_brief") or final_state.get("raw_brief")
 
         if result:
+            # Inject chunk count metadata for frontend data provenance
+            raw_chunks = final_state.get("raw_chunks", [])
+            existing_dq = result.get("data_quality", {})
+            result["data_quality"] = {
+                **existing_dq,
+                "web_chunks_fetched": len([
+                    c for c in raw_chunks
+                    if c.get("fetch_method") in ("serp_snippet", "web_unlocker_full")
+                ]),
+                "yfinance_chunks": len([
+                    c for c in raw_chunks
+                    if c.get("id", "").startswith("yf_")
+                ]),
+                "sec_chunks": len([
+                    c for c in raw_chunks
+                    if c.get("fetch_method") == "sec_edgar"
+                ]),
+            }
             return result
         else:
             return {

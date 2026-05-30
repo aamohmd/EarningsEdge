@@ -3,23 +3,7 @@
 > **Bright Data AI Builder Weekend** · Track 2: Finance & Market Intelligence
 >
 > Autonomous pre-earnings intelligence platform. Ticker in — grounded multi-layer
-> brief out. Built on a production RAG pipeline with live web data via Bright Data.
-
----
-
-## Table of Contents
-
-- [What It Does](#what-it-does)
-- [Architecture](#architecture)
-- [Team & Ownership](#team--ownership)
-- [The Hard Parts](#the-hard-parts)
-- [Integration Points](#integration-points)
-- [Data Contracts](#data-contracts)
-- [Execution Strategy](#execution-strategy)
-- [Roadmap](#roadmap)
-- [Bright Data Tools](#bright-data-tools)
-- [Stack](#stack)
-- [Quick Start](#quick-start)
+> brief out. Three data sources, six LLM calls, one analyst-grade output.
 
 ---
 
@@ -27,27 +11,31 @@
 
 **Input:** Stock ticker — `NVDA`, `TSLA`, `AMD`
 
-**Output:** Three-layer intelligence package:
+**Output:** Three-layer intelligence package in under 37 seconds:
 
 ```
-Layer 1 — Raw Brief (Mohamed)
+Layer 1 — Raw Brief
   Bull signals, bear signals, risk flags
-  Grounded in live web data + SEC filings + transcripts
-  Source-cited, contradiction-resolved
+  Grounded in live web data + SEC 10-Q filings + quantitative consensus
+  Source-cited with authority scores (SEC filing = 1.0, transcript = 0.95)
+  Contradiction-resolved — CEO quote beats Reuters every time
 
-Layer 2 — Scenario Engine (Adil)
-  Bull / Base / Bear cases
-  Confidence from signal counting, not LLM gut feel
-  Key assumptions + triggers per scenario
+Layer 2 — Scenario Engine
+  Bull / Base / Bear cases with confidence breakdown
+  Confidence from signal counting + authority weighting, not LLM gut feel
+  Key triggers per scenario + expected price move ranges
+  Overall verdict with TL;DR and watchlist priority
 
-Layer 3 — Historical Pattern Match (Adil)
-  2–3 most similar past pre-earnings setups from DB
-  "This setup resembles Q2 2023 — here is what happened"
-  Semantic similarity over stored historical briefs
+Layer 3 — Historical Pattern Match
+  2–3 most similar past pre-earnings setups
+  "This setup resembles Q2 2023 TSLA — stock gapped +24% post-earnings"
+  Ticker-scoped similarity over stored historical briefs
 ```
 
-**Demo:** NVDA in under 35 seconds. NVDA vs AMD comparison in under 45 seconds.
-Pre-cached. Bulletproof.
+**Demo:**
+- NVDA brief from cache: **< 20ms**
+- NVDA vs AMD comparison from cache: **< 20ms**
+- Any live ticker (e.g. MSFT): **< 37 seconds**
 
 ---
 
@@ -57,120 +45,119 @@ Pre-cached. Bulletproof.
 graph TD
     classDef mohamed fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000;
     classDef adil fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
-    classDef ilyas fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000;
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px,color:#000;
-    
+    classDef shared fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#000;
+
     API1("POST /brief/{ticker}"):::mohamed
     API2("POST /compare"):::mohamed
     API3("GET  /signals/{ticker}"):::mohamed
-    
-    FastAPI["FastAPI (Mohamed)"]:::mohamed
+
+    FastAPI["FastAPI + Cache Layer"]:::mohamed
     API1 --> FastAPI
     API2 --> FastAPI
     API3 --> FastAPI
-    
-    subgraph LangGraphAgent ["LangGraph Agent Mohamed"]
+
+    subgraph LangGraphAgent ["LangGraph Pipeline"]
         direction TB
-        Router["Router Node"]:::mohamed
-        WebFetch["Web Fetch Node<br/>(SERP API & Web Unlocker)"]:::mohamed
-        RAG["RAG Node<br/>(pgvector, BM25, RRF, Cross-encoder)"]:::mohamed
-        PreSynth["Pre-Synthesis Node<br/>(Dedup, recency, flag contradictions)"]:::mohamed
-        Synth["Synthesis Node<br/>(Reasoning chain to JSON)"]:::mohamed
-        
-        Router --> WebFetch
-        WebFetch --> RAG
-        RAG --> PreSynth
-        PreSynth --> Synth
+        Router["Router Node\n(earnings date → recency mode)"]:::mohamed
+        WebFetch["Web Fetch Node\n(SERP + Web Unlocker + SEC EDGAR + yFinance)\nAll parallel via asyncio.gather"]:::mohamed
+        PreSynth["Pre-Synthesis Node\n(Dedup · Recency filter · Sentiment count)"]:::mohamed
+        Synth["Synthesis Node\n(6-call reasoning chain → Contract D)"]:::mohamed
     end
-    
+
     FastAPI --> Router
-    
-    subgraph IntelligenceLayer ["Intelligence Layer Adil"]
-        direction TB
-        Scenario["Scenario Engine<br/>(Bull/Bear signals to confidence %)"]:::adil
-        Pattern["Historical Pattern Matcher<br/>(Cosine sim on past briefs)"]:::adil
-    end
-    
-    Synth -->|raw brief JSON| IntelligenceLayer
-    
-    subgraph DataLayer ["Data Layer Ilyas"]
-        direction TB
-        Scrapers["Scrapers<br/>(Earnings, Filings, LinkedIn, Transcripts)"]:::ilyas
-        DB[("DB (Supabase / Managed pgvector)")]:::ilyas
-        Jobs["Jobs<br/>(Monitor, Embed, Ingest)"]:::ilyas
-    end
-    
-    IntelligenceLayer -->|enriched brief| FastAPI
-    
-    DataLayer -.->|data flow| LangGraphAgent
-    DataLayer -.->|data flow| IntelligenceLayer
-```
+    Router --> WebFetch
+    WebFetch --> PreSynth
+    PreSynth --> Synth
 
-### Parallelization — Designed From Day One
+    subgraph IntelligenceLayer ["Intelligence Layer"]
+        direction TB
+        Scenario["Scenario Engine\n(Confidence breakdown · Triggers · Price moves)"]:::adil
+        Pattern["Historical Pattern Matcher\n(Ticker-scoped cosine similarity)"]:::adil
+        Verdict["Verdict Generator\n(TL;DR · Recommended scenario · Priority)"]:::adil
+    end
 
-```mermaid
-gantt
-    title Parallelization Timeline (~34s Total)
-    dateFormat  mm:ss
-    axisFormat  %M:%S
-    
-    section Data Fetch
-    SERP API call           :a1, 00:00, 8s
-    Web Unlocker call       :a2, 00:00, 8s
-    pgvector retrieval      :a3, 00:00, 8s
-    
-    section Fusion
-    Pre-synthesis & RAG     :a4, 00:08, 4s
-    
-    section Synthesis
-    Reasoning chain         :a5, 00:12, 12s
-    
-    section Intelligence
-    Scenario Engine         :a6, 00:24, 10s
-    Pattern Match           :a7, 00:24, 10s
+    Synth -->|"Contract D\n(raw brief JSON)"| IntelligenceLayer
+    IntelligenceLayer -->|"Contract E\n(enriched brief)"| FastAPI
 ```
 
 ---
 
-## Team & Ownership
+## The 6-Call Reasoning Chain
 
-This project is built by three people, with strict data contracts between layers to allow parallel development during the hackathon. Detailed responsibilities, technical challenges, and roadmaps are broken out into individual documents:
+What separates EarningsEdge from a wrapper: before the LLM writes a single word, the pipeline runs a full contradiction audit.
 
-- [Mohamed — Retrieval Brain & Agent](docs/mohamed.md)
-- [Ilyas — Data Nervous System & ETL](docs/ilyas.md)
-- [Adil — Intelligence Amplifier & Scenarios](docs/adil.md)
+```
+Call 0 → Contradiction Detection
+         Compares every chunk pair — finds interpretive conflicts,
+         numerical discrepancies, guidance vs analyst disagreements
+
+Call 1 → Classification
+         Labels each chunk: bull / bear / risk / neutral / contradicted
+         Receives known contradiction pairs from Call 0 — only needs to classify
+
+Call 2 → Contradiction Resolution
+         Authority hierarchy: SEC filing (1.0) > transcript (0.95) > tier-1 news (0.85)
+         CEO direct quote beats anonymous source. Every time.
+
+Call 3 → Draft Sections
+         Writes bull, bear, risk sections independently
+         Quantitative rules: PEG < 1.0 = bull signal. Short interest < 5% = bull signal.
+         yFinance context injected — "$2.08 consensus EPS" not "analysts expect growth"
+
+Call 4 → Coherence Check (conditional)
+         Skipped if no overlap between bull/bear sections — saves 4-5 seconds
+         Only fires if the same fact appears in both sections
+
+Call 5 → Format to Contract D
+         Strict JSON schema with source attribution
+         brief_id and generated_at set in Python — LLM never touches them
+```
 
 ---
 
-## Integration Points
+## Data Sources — Three in Parallel
+
+| Source | What It Gives | Authority | How |
+|--------|--------------|-----------|-----|
+| **Bright Data SERP API** | Top news URLs for the ticker | 0.65–0.85 | Live search per request |
+| **Bright Data Web Unlocker** | Full article content (not just snippets) | 0.65–0.85 | Fetches top 2 URLs fully |
+| **SEC EDGAR** | Most recent 10-Q / 10-K filing | **1.0** | Free public API, no key needed |
+| **yFinance** | Consensus EPS, Forward P/E, PEG, price targets, earnings surprise history | 0.90 | Pre-labeled chunks injected directly |
+
+All four run in parallel via `asyncio.gather`. The pipeline never waits for one source before starting another.
+
+---
+
+## Resilience — What Happens When Things Break
 
 ```
-Ilyas                Mohamed               Adil
-    │                        │                       │
-    │──[A] DB_URL + schema──▶│                       │
-    │                        │                       │
-    │──[B] transcripts ──────┼──────────────────────▶│
-    │   table direct read    │   (T3 reads DB direct) │
-    │                        │                       │
-    │──[C] signal-ready ────▶│                       │
-    │   ping on ingest       │                       │
-    │                        │                       │
-    │                        │──[D] raw brief ───────▶│
-    │                        │   JSON                 │
-    │                        │                       │
-    │                        │◀─[E] enriched brief───│
-    │                        │                       │
-    │◀─[F] watchlist add─────┼───────────────────────│
-    │   new ticker           │                       │
+Bright Data returns 502?
+  → Exponential backoff retry (3 attempts)
+  → If still failing: yFinance + SEC chunks carry the brief
+
+Web fetch returns < 5 chunks?
+  → Demo tickers (NVDA/TSLA/AMD): serve cache transparently
+  → Other tickers: run synthesis on available chunks with data_quality flag
+
+Cache miss on demo ticker?
+  → Live pipeline runs automatically
+  → Result cached after completion
+
+Every response includes:
+  "data_quality": {
+    "status": "healthy" | "degraded",
+    "web_chunks_fetched": 14,
+    "cached_at": null | "iso-timestamp"
+  }
 ```
 
 ---
 
 ## Data Contracts
 
-### [D] Raw Brief — Mohamed → Adil
+### Contract D — Raw Brief (Pipeline → Intelligence Layer)
 
-```python
+```json
 {
   "ticker": "NVDA",
   "brief_id": "uuid",
@@ -181,34 +168,54 @@ Ilyas                Mohamed               Adil
   "bear_signals": [
     {"text": "string", "source_id": "uuid", "source_type": "string"}
   ],
-  "risk_flags": ["string"],
+  "risk_flags": [
+    {"text": "string", "source_id": "uuid", "source_type": "string"}
+  ],
   "analyst_sentiment": "bullish|neutral|bearish",
-  "comparable_quarter": "string",
+  "comparable_quarter": "Q2 2023",
   "sources": [
-    {"id": "uuid", "url": "string", "type": "string", "date": "iso", "authority": 0.9}
+    {"id": "uuid", "url": "string", "type": "string", "date": "iso", "authority": 1.0}
   ],
   "contradictions_resolved": [
-    {"claim_a": "string", "claim_b": "string", "resolution": "string"}
-  ]
+    {"chunk_a": "id", "chunk_b": "id", "claim_a": "string", "claim_b": "string", "resolution": "string"}
+  ],
+  "data_quality": {
+    "status": "healthy|degraded",
+    "web_chunks_fetched": 14,
+    "yfinance_chunks": 6,
+    "sec_chunks": 6
+  }
 }
 ```
 
-### [E] Enriched Brief — Adil → Mohamed
+### Contract E — Enriched Brief (Intelligence Layer → API)
 
-```python
+```json
 {
+  "verdict": {
+    "tldr": "Strong bull case driven by Blackwell demand. Setup resembles Q2 2023 which saw +28%.",
+    "recommended_scenario": "bull",
+    "confidence_level": "high",
+    "watchlist_priority": "top"
+  },
   "scenarios": {
-    "bull":  {"summary": "string", "confidence": 0.38, "drivers": ["string"]},
-    "base":  {"summary": "string", "confidence": 0.42, "drivers": ["string"]},
-    "bear":  {"summary": "string", "confidence": 0.20, "risks":   ["string"]}
+    "bull": {
+      "summary": "analyst prose — not copy-pasted signal text",
+      "confidence": 0.89,
+      "confidence_breakdown": {"raw_signal_ratio": 0.72, "authority_adjustment": "+0.08"},
+      "drivers": ["string"],
+      "triggers": ["Blackwell shipments exceed 100K units in guidance"],
+      "expected_move": {"range_low": "+8%", "range_high": "+28%", "based_on": "historical_matches"}
+    }
   },
   "historical_matches": [
     {
       "quarter": "Q2 2023",
-      "similarity_score": 0.87,
-      "setup_summary": "string",
-      "outcome": "string",
-      "return_5d": "+4.2%"
+      "ticker": "NVDA",
+      "similarity_score": 0.92,
+      "outcome": "Stock gapped up 24% post-earnings",
+      "return_5d": "+28.4%",
+      "key_similarity_factors": ["Architecture transition", "Data center demand surge"]
     }
   ]
 }
@@ -216,76 +223,86 @@ Ilyas                Mohamed               Adil
 
 ---
 
-## Execution Strategy
+## API Endpoints
 
-### Phase 1 — Lock Before Building
+```bash
+# Full enriched brief — cache-first
+POST /brief/{ticker}?use_cache=true
 
-- [ ] All three agree on schemas [D] and [E] — write them down, no changes after
-- [ ] Ilyas: DB running, schema applied, DB_URL shared
-- [ ] Mohamed: Synthesis prompt iteration on mock data — not wiring, just prompting
-- [ ] Adil: Enricher stub that accepts [D] and returns [E] shape with mock data
+# Two tickers in parallel
+POST /compare
+Body: {"tickers": ["NVDA", "AMD"]}
 
-> [!WARNING]
-> **Rule: do not wire before the prompt works. Do not wire before the schema is locked.**
+# Signals only — lightweight
+GET /signals/{ticker}
 
-### Demo Safety
+# Demo readiness check
+GET /cache/status
 
-Pre-run full pipeline on NVDA, TSLA, AMD once everything connects.
-Store enriched briefs in `api/cache.py`. Demo these three from cache.
-Live pipeline still runs for any other ticker — judges can test it.
-Cache is the fallback, not the cheat.
-
----
-
-## Future Optimizations (Low-Hanging Fruit)
-
-To make the platform **faster** and **better** without requiring extensive research or heavy re-architecture, we can implement the following easy wins:
-
-### Speed Optimizations
-- **Parallelize Intelligence Layer**: Don't wait for final text synthesis. Pass the intermediate classified chunks from `pre_synthesis.py` directly to the Scenario Engine. This allows the synthesis and intelligence layers to run concurrently, cutting execution time from ~34s to ~24s.
-- **Model Tiering**: Use a blazingly fast model (like Claude 3 Haiku or LLaMA-3 via Groq) for the routing, classification, and coherence steps. Reserve the slower, heavier models (GPT-4o/Claude 3.5 Sonnet) exclusively for the final text generation step.
-- **SSE Streaming**: Use FastAPI `StreamingResponse` to stream the JSON chunks to the frontend as they resolve. The user sees the raw brief load instantly, masking the remaining backend latency.
-
-### Quality Optimizations
-- **Quantitative Grounding**: Add a quick API call to yFinance/Polygon to pull hard numbers (Consensus EPS, Forward P/E) and inject them into Adil's Scenario Engine to make the confidence scores mathematically grounded.
-- **Automated Reflection**: Add a conditional edge in LangGraph after the Coherence check. If the check fails (e.g., a bear signal ends up in the bull section), trigger a fast self-correction prompt before returning the payload to the user.
+# Health
+GET /health
+```
 
 ---
 
-## Roadmap
+## Parallelization
 
-For detailed daily schedules and checklists, see the individual team member documents:
-- [Mohamed's Roadmap](docs/mohamed.md#roadmap)
-- [Ilyas's Roadmap](docs/ilyas.md#roadmap)
-- [Adil's Roadmap](docs/adil.md#roadmap)
+```mermaid
+gantt
+    title Pipeline Timeline (~37s live · <20ms cached)
+    dateFormat  mm:ss
+    axisFormat  %M:%S
 
----
+    section Parallel Fetch
+    SERP API                :a1, 00:00, 8s
+    Web Unlocker (articles) :a2, 00:00, 12s
+    SEC EDGAR 10-Q          :a3, 00:00, 8s
+    yFinance                :a4, 00:00, 4s
 
-## Bright Data Tools
+    section Pre-Synthesis
+    Dedup + Recency + Sentiment :a5, 00:12, 2s
 
-| Tool | Owner | Used In |
-|------|-------|---------|
-| **SERP API** | Mohamed | `web_fetch.py` — live news per ticker |
-| **Web Unlocker** | Mohamed | `web_fetch.py` — Seeking Alpha transcripts |
-| **MCP Server** | Mohamed | LangGraph agent web context |
-| **Web Scraper API** | Ilyas | Earnings calendar, SEC filings, LinkedIn, transcripts |
+    section 6-Call Chain
+    Call 0 Contradiction detect :a6, 00:14, 5s
+    Call 1 Classify             :a7, 00:19, 3s
+    Call 2 Resolve              :a8, 00:22, 4s
+    Call 3 Draft sections       :a9, 00:26, 6s
+    Call 5 Format               :a10, 00:32, 3s
+
+    section Intelligence
+    Scenario + Pattern + Verdict :a11, 00:35, 5s
+```
 
 ---
 
 ## Stack
 
 ```
-Backend         FastAPI, Python 3.11+
-Agent           LangGraph, LangChain
-Storage         Supabase (Managed PostgreSQL + pgvector), SQLAlchemy
-RAG             LlamaIndex, BM25, RRF fusion, cross-encoder reranking
-Data            Bright Data (4 tools), yFinance, Polygon.io
-Infrastructure  Serverless / Fast LLMs / API (No-Docker)
+Frontend         React, Vite, Tailwind CSS v4, GSAP, Lenis, Framer Motion
+Backend          FastAPI, Python 3.11+
+Agent            LangGraph
+LLM              Llama 3.3 70B Instruct Turbo via AI/ML API (free tier)
+Data             Bright Data (SERP API + Web Unlocker)
+                 SEC EDGAR (free public API)
+                 yFinance (quantitative grounding)
+Cache            JSON file cache (api/cache_data/)
+Infrastructure   No Docker — runs locally or on any Python host
 ```
 
 ---
 
+## Bright Data Tools
+
+| Tool | Used For |
+|------|---------|
+| **SERP API** | Live news search per ticker — finds top URLs |
+| **Web Unlocker** | Full article content fetch — not just snippets |
+
+---
+
 ## Quick Start
+
+### 1. Backend Setup
 
 ```bash
 git clone https://github.com/your-team/earningsedge
@@ -294,14 +311,28 @@ pip install -r requirements.txt
 
 cp .env.example .env
 # BRIGHT_DATA_API_KEY=
-# OPENAI_API_KEY=
-# GROQ_API_KEY=
-# DATABASE_URL=postgresql://postgres.[YOUR-PROJECT]:[PASSWORD]@aws-0-REGION.pooler.supabase.com:6543/postgres
+# BRIGHT_DATA_SERP_ZONE=serp_api
+# BRIGHT_DATA_UNLOCKER_ZONE=web_unlocker
+# BRIGHT_DATA_SERP_URL=https://api.brightdata.com/request
+# BRIGHT_DATA_UNLOCKER_URL=https://api.brightdata.com/request
+# OPENAI_API_KEY=        ← your AI/ML API key
+# OPENAI_BASE_URL=https://api.aimlapi.com/v1
+# GROQ_API_KEY=          ← optional fallback
 
-# Note: Docker is no longer required due to Supabase migration
-python data/db/migrate.py
-uvicorn api.main:app --reload
+# Pre-populate cache for demo tickers
+PYTHONPATH=. python api/cache.py
 
-# Test
-curl -X POST http://localhost:8000/brief/NVDA
+# Start API
+PYTHONPATH=. uvicorn api.main:app --reload --port 8000
 ```
+
+### 2. Frontend Setup
+
+```bash
+# In a new terminal window
+cd frontend
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5173` to view the UI.

@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Surfaces ── */
+  --color-bg-primary: #0a0a0c;
+  --color-bg-secondary: #111114;
+  --color-bg-hover: #19191e;
+  --color-bg-header: #0d0d10;
+  --color-bg-card: #111114;
+  --color-bg-elevated: #16161a;
+
+  /* ── Borders ── */
+  --color-border-primary: #262630;
+  --color-border-hover: #38384a;
+  --color-border-subtle: #1e1e2a;
+
+  /* ── Text ── */
+  --color-text-primary: #e3e2e2;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #7c7c8a;
+
+  /* ── Accent — muted emerald, never neon ── */
+  --color-accent: #34d399;
+  --color-accent-hover: #6ee7b7;
+  --color-accent-dim: oklch(0.72 0.15 163 / 0.08);
+  --color-accent-border: oklch(0.72 0.15 163 / 0.18);
+  --color-text-on-accent: #0a0a0c;
+
+  /* ── Semantic ── */
+  --color-trm-pos: #34d399;
+  --color-trm-neg: #f87171;
+  --color-trm-warn: #fbbf24;
+  --color-trm-info: #60a5fa;
+
+  /* ── Type ── */
+  --font-sans: "Outfit", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body, #root {
+    height: 100%;
+    font-family: var(--font-sans);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: oklch(0.72 0.15 163 / 0.2);
+    color: var(--color-accent);
+  }
+
+  /* Lenis */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis.lenis-stopped { overflow: hidden; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-hover); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+}
+
+@layer utilities {
+  /* Grain overlay — adds texture to backgrounds */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Spotlight inner border on cards */
+  .inner-light {
+    box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  }
+
+  /* Confidence ring */
+  .ring-track {
+    fill: none;
+    stroke: var(--color-border-primary);
+    stroke-width: 4;
+  }
+  .ring-fill {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
