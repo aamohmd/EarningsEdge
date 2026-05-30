@@ -67,7 +67,7 @@ export default function PipelineVisualizer({ ticker, fastForward = false, onComp
       const step = PIPELINE_STEPS[idx];
       setActiveId(step.id);
       
-      const targetDuration = fastForwardRef.current ? 150 : step.duration;
+      const targetDuration = fastForwardRef.current ? 1500 : step.duration;
       elapsed += 50;
       
       if (elapsed >= targetDuration) {

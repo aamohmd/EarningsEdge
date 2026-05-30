@@ -44,8 +44,7 @@ def _format_for_embedding(raw_brief: dict) -> str:
 def embed_brief(raw_brief: dict) -> list:
     try:
         client = OpenAI(
-            api_key=os.getenv("AIML_API_KEY"),
-            base_url="https://api.aimlapi.com/v1"
+            api_key=os.getenv("OPENAI_API_KEY")
         )
         response = client.embeddings.create(
             input=[_format_for_embedding(raw_brief)],
