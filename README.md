@@ -262,15 +262,15 @@ gantt
     section Pre-Synthesis
     Dedup + Recency + Sentiment :a5, 00:12, 2s
 
-    section 6-Call Chain
-    Call 0 Contradiction detect :a6, 00:14, 5s
-    Call 1 Classify             :a7, 00:19, 3s
-    Call 2 Resolve              :a8, 00:22, 4s
-    Call 3 Draft sections       :a9, 00:26, 6s
-    Call 5 Format               :a10, 00:32, 3s
+    section Synthesis Chain
+    Contradict Detect       :a6, 00:14, 5s
+    Classify Signals        :a7, 00:19, 3s
+    Resolve Authority       :a8, 00:22, 4s
+    Draft Sections          :a9, 00:26, 6s
+    Format Schema           :a10, 00:32, 3s
 
     section Intelligence
-    Scenario + Pattern + Verdict :a11, 00:35, 5s
+    Scenario Generation     :a11, 00:35, 5s
 ```
 
 ---
