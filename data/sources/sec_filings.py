@@ -30,21 +30,13 @@ from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
-# SEC requires a User-Agent header identifying who is making the request
 SEC_USER_AGENT = "EarningsEdge hackathon@earningsedge.ai"
 
-# EDGAR API endpoints — all free, no auth required
 EDGAR_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 
-# Max chunks per filing — keep token count controlled
 MAX_CHUNKS_PER_FILING = 8
-MIN_CHUNK_LENGTH = 300  # raised from 150 — short paras are almost always boilerplate
+MIN_CHUNK_LENGTH = 300
 
-
-# =============================================================================
-# CIK LOOKUP
-# SEC identifies companies by CIK number, not ticker
-# =============================================================================
 
 async def get_cik(client: httpx.AsyncClient, ticker: str) -> Optional[str]:
     """
@@ -71,11 +63,6 @@ async def get_cik(client: httpx.AsyncClient, ticker: str) -> Optional[str]:
         logger.error(f"SEC: CIK lookup failed for {ticker}: {type(e).__name__} - {str(e)}")
         return None
 
-
-# =============================================================================
-# FILING LOOKUP
-# Gets the most recent 10-Q (falls back to 10-K)
-# =============================================================================
 
 async def get_latest_filing(
     client: httpx.AsyncClient,
@@ -109,7 +96,6 @@ async def get_latest_filing(
                     "cik":              cik,
                 }
 
-        # Fallback to 10-K if no 10-Q found
         if form_type == "10-Q":
             logger.info(f"SEC: no 10-Q for CIK {cik} — trying 10-K")
             return await get_latest_filing(client, cik, "10-K")
@@ -120,10 +106,6 @@ async def get_latest_filing(
         logger.error(f"SEC: filing lookup failed for CIK {cik}: {e}")
         return None
 
-
-# =============================================================================
-# FILING CONTENT FETCH
-# =============================================================================
 
 async def fetch_filing_content(
     client: httpx.AsyncClient,
@@ -150,11 +132,6 @@ async def fetch_filing_content(
         return None
 
 
-# =============================================================================
-# CONTENT PARSER
-# Extracts signal-rich paragraphs from the filing HTML
-# =============================================================================
-
 def parse_filing_content(
     html: str,
     ticker: str,
@@ -180,19 +157,11 @@ def parse_filing_content(
     full_text = soup.get_text(separator=" ")
     full_text = re.sub(r'\s+', ' ', full_text)
 
-    # ------------------------------------------------------------------
-    # Locate the MD&A narrative — find the occurrence of a sentence
-    # that looks like Results of Operations discussion prose, not notes.
-    # We collect ALL matches and pick the one deepest in the document
-    # (the MD&A section comes after the financial statements).
-    # ------------------------------------------------------------------
     NARRATIVE_ANCHORS = [
-        # Most specific first — explicit dollar commentary sentences
         r'(?:automotive|services|energy|gaming|compute|networking|client|data center).{0,50}\brevenue.{0,50}(?:increased|decreased|was|grew).{0,100}\$',
         r'(?:total|net) revenues?.{0,50}(?:increased|decreased|were|was).{0,100}\$',
         r'\bup \d+%.{0,50}\bfrom a year ago\b',
         r'\b(?:data center|gaming|client|networking|compute).{0,50}\brevenue.{0,50}\b(?:was|increased|grew).{0,100}\b(?:billion|million)\b',
-        # Broader — pick last occurrence to avoid notes section matches
         rf'\b{re.escape(ticker)}\b.{0,50}\brevenue.{0,50}\b(?:was|increased|decreased|grew).{0,100}\b(?:billion|million)\b',
         r'\bgross\s+(?:profit|margin).{0,50}\b(?:increased|decreased|improved).{0,100}\b(?:billion|million|%)\b',
         r'\boperating\s+income.{0,50}\b(?:increased|decreased).{0,100}\b(?:billion|million)\b',
@@ -200,11 +169,8 @@ def parse_filing_content(
 
     anchor_pos = -1
     for pat in NARRATIVE_ANCHORS:
-        # Collect all matches — take the last one (deepest in doc = past financials)
         matches = list(re.finditer(pat, full_text, re.IGNORECASE))
         if matches:
-            # Among the last 3 matches, prefer ones with more alphabetic content
-            # (prose vs. table headers)
             candidates = matches[-3:]
             best = max(
                 candidates,
@@ -218,17 +184,12 @@ def parse_filing_content(
         logger.warning(f"SEC: no narrative anchor found for {ticker} — trying paragraph fallback")
         return _parse_filing_fallback(full_text, ticker, filing_meta)
 
-    # Extract a 15,000-char window: start a bit before the anchor
     window_start = max(0, anchor_pos - 200)
     window_end   = min(len(full_text), anchor_pos + 15000)
     window_text  = full_text[window_start:window_end]
 
-    # Sentence-split the window
     sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z\$])', window_text)
 
-    # ------------------------------------------------------------------
-    # Filter sentences into signal-rich chunks
-    # ------------------------------------------------------------------
     finance_keywords = [
         ticker.lower(), "revenue", "earnings", "margin", "guidance",
         "quarter", "billion", "million", "growth", "profit", "loss",
@@ -264,12 +225,10 @@ def parse_filing_content(
         if any(skip in sent_lower for skip in skip_patterns):
             continue
 
-        # Require at least 3 finance keyword hits
         kw_hits = sum(1 for kw in finance_keywords if kw in sent_lower)
         if kw_hits < 3:
             continue
 
-        # Need meaningful prose — at least 80 alphabetic chars
         if len(re.findall(r'[a-zA-Z]', sentence)) < 80:
             continue
 
@@ -337,10 +296,6 @@ def _parse_filing_fallback(
 
 
 
-# =============================================================================
-# MAIN — get_filing_chunks
-# =============================================================================
-
 async def get_filing_chunks(
     ticker: str,
     form_type: str = "10-Q",
@@ -373,10 +328,6 @@ async def get_filing_chunks(
         return parse_filing_content(html, ticker, filing_meta)
 
 
-# =============================================================================
-# STANDALONE TEST — python data/sources/sec_filings.py
-# =============================================================================
-
 if __name__ == "__main__":
     import json
     import os
@@ -395,7 +346,6 @@ if __name__ == "__main__":
                 print(f"  {c['chunk'][:300]}...")
                 print(f"  authority={c['authority']} | date={c['date']}")
 
-        # Save NVDA output for inspection
         nvda_chunks = await get_filing_chunks("NVDA")
         os.makedirs("mock", exist_ok=True)
         with open("mock/sec_filing_output.json", "w") as f:
