@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/brief/(.*)", "destination": "/api/main.py" },
+    { "source": "/compare", "destination": "/api/main.py" },
+    { "source": "/signals/(.*)", "destination": "/api/main.py" },
+    { "source": "/cache/(.*)", "destination": "/api/main.py" },
+    { "source": "/health", "destination": "/api/main.py" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

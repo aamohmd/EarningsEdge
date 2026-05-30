@@ -37,7 +37,7 @@ export default function Brief() {
       try {
         setLoading(true);
         // Using use_cache=true as it was requested to hit live/cached backend
-        const response = await fetch(`http://localhost:8000/brief/${ticker.toUpperCase()}?use_cache=true`, {
+        const response = await fetch(`/brief/${ticker.toUpperCase()}?use_cache=true`, {
           method: 'POST',
         });
         
