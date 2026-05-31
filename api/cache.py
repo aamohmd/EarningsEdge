@@ -21,7 +21,10 @@ DEMO_TICKERS = ["NVDA", "TSLA", "AMD"]
 
 # Cache stored as JSON files in api/cache_data/
 CACHE_DIR = Path(__file__).parent / "cache_data"
-CACHE_DIR.mkdir(exist_ok=True)
+try:
+    CACHE_DIR.mkdir(exist_ok=True)
+except OSError:
+    pass  # read-only filesystem on Vercel — cache_data/ is pre-committed to the repo
 
 
 def get_cached(ticker: str) -> dict | None:

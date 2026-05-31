@@ -1,0 +1,432 @@
+{
+  "ticker": "TSLA",
+  "brief_id": "7d12c974-892c-4acd-b59e-aea55060121d",
+  "generated_at": "2026-05-30T22:11:08.686655Z",
+  "bull_signals": [
+    {
+      "text": "Tesla's low short interest stands at 2.2% of float, indicating minimal bearish positioning and limited downside pressure.",
+      "source_id": "yf_si_TSLA",
+      "source_type": "filing"
+    },
+    {
+      "text": "The company's revenue growth is expected to accelerate, with a 9.4% year-over-year increase in consensus revenue estimate for the next quarter, reaching $24.60 billion.",
+      "source_id": "yf_rev_TSLA",
+      "source_type": "filing"
+    },
+    {
+      "text": "Tesla's auto segment revenue rose 16% to $16.2 billion, driven by the success of its Model Y SUV and Model 3 sedans.",
+      "source_id": "article_59995_19",
+      "source_type": "news"
+    },
+    {
+      "text": "With a consensus BUY rating from 41 analysts and a price target of $411.89, the stock has a potential 5.5% upside.",
+      "source_id": "yf_pt_TSLA",
+      "source_type": "filing"
+    }
+  ],
+  "bear_signals": [
+    {
+      "text": "Tesla's bear case is driven by concerns over inventory pressure, particularly in its Model 3/Y lineup, where Q1 production exceeded deliveries by approximately 53,000 units.",
+      "source_id": "article_47545_23",
+      "source_type": "news"
+    },
+    {
+      "text": "The company's selling, general, and administrative expenses increased by 47% year-over-year, driven by higher stock-based compensation and employee costs.",
+      "source_id": "sec_TSLA_10-Q_123948_5",
+      "source_type": "filing"
+    },
+    {
+      "text": "Tesla's effective tax rate increased from 29% to 34% in Q1 2026, which could impact its profitability.",
+      "source_id": "sec_TSLA_10-Q_123948_9",
+      "source_type": "filing"
+    }
+  ],
+  "risk_flags": [
+    {
+      "text": "External risks that could impact Tesla's stock price include the company's significant capital expenditure plans, which are expected to exceed $25 billion in 2026.",
+      "source_id": "sec_TSLA_10-Q_123948_21",
+      "source_type": "filing"
+    }
+  ],
+  "analyst_sentiment": "bullish",
+  "comparable_quarter": "Q1 2023",
+  "sources": [
+    {
+      "id": "article_59995_9",
+      "url": "https://www.cnbc.com/2026/04/22/tesla-tsla-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_59995_10",
+      "url": "https://www.cnbc.com/2026/04/22/tesla-tsla-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_59995_19",
+      "url": "https://www.cnbc.com/2026/04/22/tesla-tsla-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_59995_23",
+      "url": "https://www.cnbc.com/2026/04/22/tesla-tsla-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_47545_23",
+      "url": "https://www.tradingkey.com/analysis/stocks/us-stocks/261804129-tesla-q1-2026-earnings-preview-5-key-metrics-tradingkey",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "transcript_TSLA_70",
+      "url": "https://seekingalpha.com/article/4893107-tesla-inc-tsla-q1-2026-earnings-call-transcript",
+      "type": "transcript",
+      "date": "2026-04-22T00:00:00Z",
+      "authority": 0.95
+    },
+    {
+      "id": "yf_eps_TSLA",
+      "url": "https://finance.yahoo.com/quote/TSLA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_rev_TSLA",
+      "url": "https://finance.yahoo.com/quote/TSLA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_pt_TSLA",
+      "url": "https://finance.yahoo.com/quote/TSLA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_si_TSLA",
+      "url": "https://finance.yahoo.com/quote/TSLA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "sec_TSLA_10-Q_123948_5",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001318605&type=10-Q",
+      "type": "filing",
+      "date": "2026-04-23T00:00:00Z",
+      "authority": 1.0
+    },
+    {
+      "id": "sec_TSLA_10-Q_123948_9",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001318605&type=10-Q",
+      "type": "filing",
+      "date": "2026-04-23T00:00:00Z",
+      "authority": 1.0
+    },
+    {
+      "id": "sec_TSLA_10-Q_123948_21",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001318605&type=10-Q",
+      "type": "filing",
+      "date": "2026-04-23T00:00:00Z",
+      "authority": 1.0
+    }
+  ],
+  "contradictions_resolved": [
+    {
+      "chunk_a": "article_59995_9",
+      "chunk_b": "article_59995_10",
+      "claim_a": "Tesla's Q1 earnings beat analysts' estimates despite weaker-than-expected revenue.",
+      "claim_b": "Tesla's shares initially rose but gave up gains after the company announced increased spending for the year.",
+      "resolution": "Both claims coexist as they describe different aspects of the Q1 earnings reaction, with one focusing on the earnings beat and the other on the market's reaction to the spending announcement."
+    },
+    {
+      "chunk_a": "article_59995_23",
+      "chunk_b": "article_47545_18",
+      "claim_a": "Tesla's Q1 vehicle deliveries were up about 6% from a year earlier.",
+      "claim_b": "Tesla's Q1 deliveries were approximately 7,600 fewer than expected.",
+      "resolution": "Chunk article_59995_23 wins because it provides a direct comparison of the delivery growth rate, while chunk article_47545_18 focuses on the difference between actual and expected deliveries, which is a separate claim."
+    },
+    {
+      "chunk_a": "article_59995_25",
+      "chunk_b": "sec_TSLA_10-Q_123948_9",
+      "claim_a": "Tesla's automotive gross margins were higher due to lower material costs.",
+      "claim_b": "Tesla's effective tax rate increased from 29% to 34% in Q1 2026.",
+      "resolution": "Chunk sec_TSLA_10-Q_123948_9 wins because it is a primary source (SEC filing) that directly addresses the effective tax rate, while chunk article_59995_25 discusses gross margins, which is a separate metric."
+    },
+    {
+      "chunk_a": "article_47545_17",
+      "chunk_b": "yf_eps_TSLA",
+      "claim_a": "The Non-GAAP EPS consensus for Tesla's Q1 2026 earnings is $0.33.",
+      "claim_b": "The analyst consensus EPS estimate for TSLA's next quarter is $0.45.",
+      "resolution": "Chunk yf_eps_TSLA wins because it has a higher authority (0.9) and provides a more specific and direct estimate of the EPS for the!next quarter, while chunk article_47545_17 discusses the Q1 earnings estimate."
+    },
+    {
+      "chunk_a": "article_47545_24",
+      "chunk_b": "sec_TSLA_10-Q_123948_21",
+      "claim_a": "Tesla may clear its inventory through price cuts, which could compress Q2 gross margins.",
+      "claim_b": "Tesla expects its capital expenditures to exceed $25 billion in 2026.",
+      "resolution": "Chunk sec_TSLA_10-Q_123948_21 wins because it is a primary source (SEC filing) that provides a direct statement on the company's capital expenditure guidance, while chunk article_47545_24 is an analysis of potential implications of inventory clearance on gross margins."
+    },
+    {
+      "chunk_a": "transcript_TSLA_70",
+      "chunk_b": "sec_TSLA_10-Q_123948_21",
+      "claim_a": "Tesla will substantially increase its investments in the future, leading to a significant increase in capital expenditures.",
+      "claim_b": "Tesla expects its capital expenditures to exceed $25 billion in 2026.",
+      "resolution": "Both claims coexist as they describe different aspects of the capital expenditure increase, with one focusing on the general direction of investment and the other providing a specific guidance on the expected amount of capital expenditures."
+    }
+  ],
+  "enrichment_latency_ms": 19782,
+  "verdict": {
+    "tldr": "With strong revenue growth momentum and minimal bearish positioning, Tesla's upcoming earnings print is poised to drive a positive stock reaction, barring significant downside surprises from inventory pressure or rising expenses.",
+    "recommended_scenario": "bull",
+    "confidence_level": "high",
+    "watchlist_priority": "top"
+  },
+  "scenarios": {
+    "bull": {
+      "summary": "Tesla's strong revenue growth momentum, driven by the success of its Model Y SUV and Model 3 sedans, is expected to continue, with a 9.4% year-over-year increase in consensus revenue estimate for the next quarter. This growth, combined with minimal bearish positioning, supports a bullish outlook for the stock.",
+      "confidence": 0.87,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 0.5,
+        "authority_adjustment": 0.124,
+        "sentiment_adjustment": 0.15,
+        "yfinance_adjustment": 0.1,
+        "yfinance_consensus": "BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 5
+          },
+          {
+            "source_type": "transcript",
+            "weight": 1.2,
+            "count": 1
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 7
+          }
+        ]
+      },
+      "drivers": [
+        "Tesla's low short interest stands at 2.2% of float, indicating minimal bearish positioning and limited downside pressure.",
+        "The company's revenue growth is expected to accelerate, with a 9.4% year-over-year increase in consensus revenue estimate for the next quarter, reaching $24.60 billion.",
+        "Tesla's auto segment revenue rose 16% to $16.2 billion, driven by the success of its Model Y SUV and Model 3 sedans."
+      ],
+      "triggers": [
+        "Q2 revenue exceeding $24.60 billion",
+        "Model Y SUV and Model 3 sedan deliveries beating consensus estimates"
+      ],
+      "expected_move": {
+        "range_low": "+1%",
+        "range_high": "+38%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "base": {
+      "summary": "The company's upcoming earnings print will be closely watched for signs of inventory pressure and rising expenses, which could impact profitability and temper growth expectations. A balanced performance, with revenue growth offset by increasing costs, could lead to a stable stock price.",
+      "confidence": 0.05,
+      "drivers": [
+        "Tesla's low short interest stands at 2.2% of float, indicating minimal bearish positioning and limited downside pressure.",
+        "The company's revenue growth is expected to accelerate, with a 9.4% year-over-year increase in consensus revenue estimate for the next quarter, reaching $24.60 billion.",
+        "Tesla's bear case is driven by concerns over inventory pressure, particularly in its Model 3/Y lineup, where Q1 production exceeded deliveries by approximately 53,000 units."
+      ],
+      "triggers": [
+        "Q2 revenue meeting consensus estimates",
+        "Effective tax rate stabilizing below 35%"
+      ],
+      "expected_move": {
+        "range_low": "-1%",
+        "range_high": "+1%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "bear": {
+      "summary": "Concerns over inventory pressure, rising selling and administrative expenses, and a higher effective tax rate could weigh on Tesla's profitability and stock price, particularly if the company's significant capital expenditure plans are not met with corresponding revenue growth. A bearish scenario could unfold if these risks materialize and impact the company's ability to meet growth expectations.",
+      "confidence": 0.08,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 0.5,
+        "authority_adjustment": -0.1713,
+        "sentiment_adjustment": -0.15,
+        "yfinance_adjustment": -0.1,
+        "yfinance_consensus": "BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 5
+          },
+          {
+            "source_type": "transcript",
+            "weight": 1.2,
+            "count": 1
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 7
+          }
+        ]
+      },
+      "risks": [
+        "Tesla's bear case is driven by concerns over inventory pressure, particularly in its Model 3/Y lineup, where Q1 production exceeded deliveries by approximately 53,000 units.",
+        "The company's selling, general, and administrative expenses increased by 47% year-over-year, driven by higher stock-based compensation and employee costs.",
+        "Tesla's effective tax rate increased from 29% to 34% in Q1 2026, which could impact its profitability."
+      ],
+      "triggers": [
+        "Q2 inventory levels exceeding 100,000 units",
+        "SG&A expenses rising by more than 50% year-over-year"
+      ],
+      "expected_move": {
+        "range_low": "-4%",
+        "range_high": "-2%",
+        "based_on": "analyst_price_targets"
+      }
+    }
+  },
+  "signal_quality_summary": {
+    "total_signals": 8,
+    "high_authority_signals": 1,
+    "low_authority_signals": 5,
+    "avg_source_recency_days": 11,
+    "freshest_source": "2026-05-30T00:00:00Z",
+    "oldest_source": "2026-04-22T00:00:00Z"
+  },
+  "contradiction_impact": {
+    "contradictions_found": 6,
+    "confidence_impact": "-0.05 on bull",
+    "details": [
+      {
+        "claim_a": "Tesla's Q1 earnings beat analysts' estimates despite weaker-than-expected revenue.",
+        "claim_b": "Tesla's shares initially rose but gave up gains after the company announced increased spending for the year.",
+        "resolution": "Both claims coexist as they describe different aspects of the Q1 earnings reaction, with one focusing on the earnings beat and the other on the market's reaction to the spending announcement.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Tesla's Q1 vehicle deliveries were up about 6% from a year earlier.",
+        "claim_b": "Tesla's Q1 deliveries were approximately 7,600 fewer than expected.",
+        "resolution": "Chunk article_59995_23 wins because it provides a direct comparison of the delivery growth rate, while chunk article_47545_18 focuses on the difference between actual and expected deliveries, which is a separate claim.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Tesla's automotive gross margins were higher due to lower material costs.",
+        "claim_b": "Tesla's effective tax rate increased from 29% to 34% in Q1 2026.",
+        "resolution": "Chunk sec_TSLA_10-Q_123948_9 wins because it is a primary source (SEC filing) that directly addresses the effective tax rate, while chunk article_59995_25 discusses gross margins, which is a separate metric.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "The Non-GAAP EPS consensus for Tesla's Q1 2026 earnings is $0.33.",
+        "claim_b": "The analyst consensus EPS estimate for TSLA's next quarter is $0.45.",
+        "resolution": "Chunk yf_eps_TSLA wins because it has a higher authority (0.9) and provides a more specific and direct estimate of the EPS for the!next quarter, while chunk article_47545_17 discusses the Q1 earnings estimate.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Tesla may clear its inventory through price cuts, which could compress Q2 gross margins.",
+        "claim_b": "Tesla expects its capital expenditures to exceed $25 billion in 2026.",
+        "resolution": "Chunk sec_TSLA_10-Q_123948_21 wins because it is a primary source (SEC filing) that provides a direct statement on the company's capital expenditure guidance, while chunk article_47545_24 is an analysis of potential implications of inventory clearance on gross margins.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Tesla will substantially increase its investments in the future, leading to a significant increase in capital expenditures.",
+        "claim_b": "Tesla expects its capital expenditures to exceed $25 billion in 2026.",
+        "resolution": "Both claims coexist as they describe different aspects of the capital expenditure increase, with one focusing on the general direction of investment and the other providing a specific guidance on the expected amount of capital expenditures.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      }
+    ]
+  },
+  "sentiment_trend": {
+    "current": "bullish",
+    "30d_ago": "bullish",
+    "direction": "stable",
+    "momentum": "neutral",
+    "analyst_upgrades_30d": 0,
+    "analyst_downgrades_30d": 0
+  },
+  "risk_matrix": [
+    {
+      "risk": "External risks that could impact Tesla's stock price include the company's significant capital expenditure plans, which are expected to exceed $25 billion in 2026.",
+      "probability": "medium",
+      "impact": "high",
+      "affected_revenue_pct": "~10%",
+      "scenario_most_affected": "bear"
+    },
+    {
+      "risk": "Tesla's bear case is driven by concerns over inventory pressure, particularly in its Model 3/Y lineup, where Q1 production exceeded deliveries by approximately 53,000 units.",
+      "probability": "low",
+      "impact": "medium",
+      "affected_revenue_pct": "~5%",
+      "scenario_most_affected": "base"
+    },
+    {
+      "risk": "The company's selling, general, and administrative expenses increased by 47% year-over-year, driven by higher stock-based compensation and employee costs.",
+      "probability": "low",
+      "impact": "low",
+      "affected_revenue_pct": "~2%",
+      "scenario_most_affected": "base"
+    }
+  ],
+  "historical_matches": [
+    {
+      "quarter": "Q2 2023",
+      "ticker": "TSLA",
+      "similarity_score": 0.92,
+      "setup_summary": "Similar transition period from Ampere to Hopper, accompanied by massive data center demand surge.",
+      "outcome": "Stock gapped up 24% post-earnings as guidance completely shattered Wall Street consensus.",
+      "return_5d": "+28.4%",
+      "return_30d": "+41.9%",
+      "earnings_surprise_pct": "+22%",
+      "pre_earnings_sentiment": "bullish",
+      "key_similarity_factors": [
+        "Similar transition dynamics: Both current setup and Q2 2023 involve navigating significant product or technology transitions, which can impact earnings volatility.",
+        "Strong demand tailwinds: The massive data center demand surge in Q2 2023 parallels the current setup's positive drivers, potentially leading to upside surprises.",
+        "Guidance sensitivity: Both periods feature high sensitivity to management guidance, which can significantly influence stock price movements post-earnings."
+      ],
+      "key_differences": [
+        "Valuation multiples: The current setup likely features different valuation multiples compared to Q2 2023, potentially impacting the stock's reaction to earnings.",
+        "Competition landscape: Changes in the competitive environment since Q2 2023 may alter the market's perception of TSLA's growth prospects and risks.",
+        "Macro backdrop: The overall macroeconomic conditions, including interest rates and inflation, may have shifted since Q2 2023, influencing investor sentiment and the stock's performance."
+      ]
+    },
+    {
+      "quarter": "Q3 2021",
+      "ticker": "TSLA",
+      "similarity_score": 0.78,
+      "setup_summary": "High expectations leading into the print, but minor margin compression due to supply constraints.",
+      "outcome": "Stock traded sideways initially before rallying 2 weeks later as supply chain fears eased.",
+      "return_5d": "+1.2%",
+      "return_30d": "+6.6%",
+      "earnings_surprise_pct": "+1%",
+      "pre_earnings_sentiment": "neutral",
+      "key_similarity_factors": [
+        "High expectations: Both the current setup and Q3 2021 feature high expectations leading into the earnings print, setting a high bar for the company to meet or exceed.",
+        "Margin compression risks: Similar to Q3 2021, the current setup involves negative risks that could lead to margin compression, such as supply constraints or increased costs.",
+        "Supply chain sensitivity: Both periods demonstrate sensitivity to supply chain disruptions or easing of supply chain fears, which can impact the stock's performance."
+      ],
+      "key_differences": [
+        "Growth trajectory: The company's growth trajectory and investor expectations may have evolved since Q3 2021, altering the market's reaction to earnings.",
+        "Valuation sensitivity: The current setup may exhibit different valuation sensitivity compared to Q3 2021, with investors potentially more or less sensitive to earnings surprises.",
+        "Industry dynamics: Changes in industry dynamics, such as shifts in consumer behavior or regulatory environments, may have occurred since Q3 2021, influencing the company's prospects and risks."
+      ]
+    }
+  ]
+}

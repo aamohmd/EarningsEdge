@@ -1,0 +1,352 @@
+{
+  "ticker": "AMD",
+  "brief_id": "5dd0f2f7-3a8e-40ec-bc72-62b7b63c248e",
+  "generated_at": "2026-05-30T22:12:48.118997Z",
+  "bull_signals": [
+    {
+      "text": "AMD's strong Q1 results topped analysts' estimates",
+      "source_id": "article_13794_1",
+      "source_type": "news"
+    },
+    {
+      "text": "AMD's guidance for Q2 revenue of $11.2 billion exceeds expectations",
+      "source_id": "article_13794_2",
+      "source_type": "news"
+    },
+    {
+      "text": "57% year-over-year increase in Data Center sales to $5.8 billion",
+      "source_id": "article_13794_18",
+      "source_type": "news"
+    },
+    {
+      "text": "37.8% year-over-year revenue growth",
+      "source_id": "article_13794_18",
+      "source_type": "news"
+    },
+    {
+      "text": "Short interest of 2.8% of float, minimal bearish positioning",
+      "source_id": "yf_si_AMD",
+      "source_type": "filing"
+    },
+    {
+      "text": "Consensus revenue estimate for next quarter represents 46.8% YoY growth",
+      "source_id": "yf_rev_AMD",
+      "source_type": "filing"
+    }
+  ],
+  "bear_signals": [],
+  "risk_flags": [],
+  "analyst_sentiment": "bullish",
+  "comparable_quarter": null,
+  "sources": [
+    {
+      "id": "article_13794_1",
+      "url": "https://www.cnbc.com/2026/05/05/amd-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_13794_2",
+      "url": "https://www.cnbc.com/2026/05/05/amd-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_13794_18",
+      "url": "https://www.cnbc.com/2026/05/05/amd-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_13794_19",
+      "url": "https://www.cnbc.com/2026/05/05/amd-q1-2026-earnings-report.html",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.75
+    },
+    {
+      "id": "article_63091_24",
+      "url": "https://www.tradingkey.com/analysis/stocks/us-stocks/261861695-amd-earnings-datacenter-revenue-epyc-instinct-ai-inference-tradingkey",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "yf_rev_AMD",
+      "url": "https://finance.yahoo.com/quote/AMD",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_si_AMD",
+      "url": "https://finance.yahoo.com/quote/AMD",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    }
+  ],
+  "contradictions_resolved": [
+    {
+      "chunk_a": "article_13794_2",
+      "chunk_b": "article_63091_18",
+      "claim_a": "AMD expects $11.2 billion in revenue for Q2, beating expectations.",
+      "claim_b": "AMD achieved revenue of $10.253 billion in Q1, surpassing market expectations.",
+      "resolution": "Chunk article_13794_2 wins because it directly addresses Q2 revenue expectations, while article_63091_18 discusses Q1 revenue."
+    },
+    {
+      "chunk_a": "article_13794_19",
+      "chunk_b": "article_63091_14",
+      "claim_a": "AMD expects $11.2 billion in revenue for Q2, versus expectations of $10.52 billion.",
+      "claim_b": "AMD raised its Q2 revenue guidance to $11.2 billion, with strong demand anticipated for next-generation products.",
+      "resolution": "Both chunks coexist because they discuss the same Q2 revenue guidance but from different perspectives, with article_13794_19 providing a comparison to expectations and article_63091_14 discussing the guidance in the context of strong demand."
+    },
+    {
+      "chunk_a": "serp_54703",
+      "chunk_b": "yf_rev_AMD",
+      "claim_a": "The article discusses Advanced Micro Devices' earnings and revenue growth rates.",
+      "claim_b": "The consensus revenue estimate for AMD next quarter is $11.28B, representing 46.8% YoY growth.",
+      "resolution": "Chunk yf_rev_AMD wins because it has a higher authority and provides a specific consensus revenue estimate for Q2."
+    },
+    {
+      "chunk_a": "article_63091_14",
+      "chunk_b": "yf_rev_AMD",
+      "claim_a": "AMD raised its Q2 revenue guidance to $11.2 billion.",
+      "claim_b": "The consensus revenue estimate for AMD next quarter is $11.28B, representing 46.8% YoY growth.",
+      "resolution": "Chunk yf_rev_AMD wins because it has a higher authority and provides a more specific consensus revenue estimate for Q2."
+    },
+    {
+      "chunk_a": "article_13794_18",
+      "chunk_b": "article_63091_24",
+      "claim_a": "Data center sales increased 57% to $5.8 billion from $3.67 billion in the same period a year earlier.",
+      "claim_b": "The Data Center business achieved revenue of $5.8 billion, a 57% year-over-year increase, exceeding analyst estimates.",
+      "resolution": "Both chunks coexist because they discuss the same Data Center revenue growth but from different perspectives, with article_13794_18 providing a year-over-year comparison and article_63091_24 discussing the growth in the context of exceeding analyst estimates."
+    },
+    {
+      "chunk_a": "article_63091_18",
+      "chunk_b": "yf_eps_AMD",
+      "claim_a": "Non-GAAP EPS were $1.37, a 43% year-over-year increase, which also beat the previous estimate of $1.29.",
+      "claim_b": "Analyst consensus EPS estimate for AMD next quarter is $1.61.",
+      "resolution": "Chunk article_63091_18 wins because it discusses the actual Q1 Non-GAAP EPS growth rate, while yf_eps_AMD provides a forecast for the next quarter's EPS."
+    }
+  ],
+  "enrichment_latency_ms": 17094,
+  "verdict": {
+    "tldr": "Bull case most likely at 94% confidence. Key driver: AMD's strong Q1 results topped analysts' estimates.",
+    "recommended_scenario": "bull",
+    "confidence_level": "high",
+    "watchlist_priority": "top"
+  },
+  "scenarios": {
+    "bull": {
+      "summary": "Strong growth prospects for AMD driven by: AMD's strong Q1 results topped analysts' estimates Additionally, AMD's guidance for Q2 revenue of $11.2 billion exceeds expectations.",
+      "confidence": 0.94,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 1.0,
+        "authority_adjustment": 0.0441,
+        "sentiment_adjustment": 0.15,
+        "yfinance_adjustment": 0.2,
+        "yfinance_consensus": "STRONG_BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 5
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 2
+          }
+        ]
+      },
+      "drivers": [
+        "AMD's strong Q1 results topped analysts' estimates",
+        "AMD's guidance for Q2 revenue of $11.2 billion exceeds expectations",
+        "57% year-over-year increase in Data Center sales to $5.8 billion"
+      ],
+      "triggers": [
+        "AMD beats EPS and revenue consensus estimates",
+        "Management raises forward guidance"
+      ],
+      "expected_move": {
+        "range_low": "+1%",
+        "range_high": "+21%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "base": {
+      "summary": "Moderate growth for AMD. While AMD's strong Q1 results topped analysts' estimates is positive, it is offset by concerns around No significant downside risks identified..",
+      "confidence": 0.05,
+      "drivers": [
+        "AMD's strong Q1 results topped analysts' estimates",
+        "AMD's guidance for Q2 revenue of $11.2 billion exceeds expectations",
+        "No significant downside risks identified."
+      ],
+      "triggers": [
+        "AMD meets consensus with inline guidance",
+        "No major surprises in key metrics"
+      ],
+      "expected_move": {
+        "range_low": "-1%",
+        "range_high": "+1%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "bear": {
+      "summary": "Negative outlook for AMD primarily due to: No significant downside risks identified.",
+      "confidence": 0.01,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 0.0,
+        "authority_adjustment": 0.0,
+        "sentiment_adjustment": -0.15,
+        "yfinance_adjustment": -0.2,
+        "yfinance_consensus": "STRONG_BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 5
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 2
+          }
+        ]
+      },
+      "risks": [
+        "No significant downside risks identified."
+      ],
+      "triggers": [
+        "AMD misses EPS or revenue estimates",
+        "Management lowers or withdraws guidance"
+      ],
+      "expected_move": {
+        "range_low": "-7%",
+        "range_high": "-3%",
+        "based_on": "analyst_price_targets"
+      }
+    }
+  },
+  "signal_quality_summary": {
+    "total_signals": 6,
+    "high_authority_signals": 1,
+    "low_authority_signals": 5,
+    "avg_source_recency_days": 0,
+    "freshest_source": "2026-05-30T00:00:00Z",
+    "oldest_source": "2026-05-30T00:00:00Z"
+  },
+  "contradiction_impact": {
+    "contradictions_found": 6,
+    "confidence_impact": "-0.05 on bull",
+    "details": [
+      {
+        "claim_a": "AMD expects $11.2 billion in revenue for Q2, beating expectations.",
+        "claim_b": "AMD achieved revenue of $10.253 billion in Q1, surpassing market expectations.",
+        "resolution": "Chunk article_13794_2 wins because it directly addresses Q2 revenue expectations, while article_63091_18 discusses Q1 revenue.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "AMD expects $11.2 billion in revenue for Q2, versus expectations of $10.52 billion.",
+        "claim_b": "AMD raised its Q2 revenue guidance to $11.2 billion, with strong demand anticipated for next-generation products.",
+        "resolution": "Both chunks coexist because they discuss the same Q2 revenue guidance but from different perspectives, with article_13794_19 providing a comparison to expectations and article_63091_14 discussing the guidance in the context of strong demand.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "The article discusses Advanced Micro Devices' earnings and revenue growth rates.",
+        "claim_b": "The consensus revenue estimate for AMD next quarter is $11.28B, representing 46.8% YoY growth.",
+        "resolution": "Chunk yf_rev_AMD wins because it has a higher authority and provides a specific consensus revenue estimate for Q2.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "AMD raised its Q2 revenue guidance to $11.2 billion.",
+        "claim_b": "The consensus revenue estimate for AMD next quarter is $11.28B, representing 46.8% YoY growth.",
+        "resolution": "Chunk yf_rev_AMD wins because it has a higher authority and provides a more specific consensus revenue estimate for Q2.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Data center sales increased 57% to $5.8 billion from $3.67 billion in the same period a year earlier.",
+        "claim_b": "The Data Center business achieved revenue of $5.8 billion, a 57% year-over-year increase, exceeding analyst estimates.",
+        "resolution": "Both chunks coexist because they discuss the same Data Center revenue growth but from different perspectives, with article_13794_18 providing a year-over-year comparison and article_63091_24 discussing the growth in the context of exceeding analyst estimates.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Non-GAAP EPS were $1.37, a 43% year-over-year increase, which also beat the previous estimate of $1.29.",
+        "claim_b": "Analyst consensus EPS estimate for AMD next quarter is $1.61.",
+        "resolution": "Chunk article_63091_18 wins because it discusses the actual Q1 Non-GAAP EPS growth rate, while yf_eps_AMD provides a forecast for the next quarter's EPS.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      }
+    ]
+  },
+  "sentiment_trend": {
+    "current": "bullish",
+    "30d_ago": "bullish",
+    "direction": "stable",
+    "momentum": "neutral",
+    "analyst_upgrades_30d": 0,
+    "analyst_downgrades_30d": 0
+  },
+  "risk_matrix": [
+    {
+      "risk": "Hyperscaler CapEx deceleration or digestion phase",
+      "probability": "low",
+      "impact": "high",
+      "affected_revenue_pct": "~15%",
+      "scenario_most_affected": "bear"
+    }
+  ],
+  "historical_matches": [
+    {
+      "quarter": "Q2 2023",
+      "ticker": "AMD",
+      "similarity_score": 0.92,
+      "setup_summary": "Similar transition period from Ampere to Hopper, accompanied by massive data center demand surge.",
+      "outcome": "Stock gapped up 24% post-earnings as guidance completely shattered Wall Street consensus.",
+      "return_5d": "+28.4%",
+      "return_30d": "+41.9%",
+      "earnings_surprise_pct": "+22%",
+      "pre_earnings_sentiment": "bullish",
+      "key_similarity_factors": [
+        "Similar transition dynamics with new product cycles, potentially indicating strong revenue growth",
+        "Robust demand from data center and cloud computing segments, driving top-line expansion",
+        "Favorable guidance revisions, exceeding Wall Street consensus and fueling stock price appreciation"
+      ],
+      "key_differences": [
+        "Current setup lacks negative risks, whereas Q2 2023 had concerns around supply chain and manufacturing yields",
+        "Valuation multiples have expanded since Q2 2023, potentially increasing the bar for earnings beats",
+        "Competitive landscape has evolved, with Intel's and Nvidia's recent product launches impacting market share dynamics"
+      ]
+    },
+    {
+      "quarter": "Q3 2021",
+      "ticker": "AMD",
+      "similarity_score": 0.78,
+      "setup_summary": "High expectations leading into the print, but minor margin compression due to supply constraints.",
+      "outcome": "Stock traded sideways initially before rallying 2 weeks later as supply chain fears eased.",
+      "return_5d": "+1.2%",
+      "return_30d": "+6.6%",
+      "earnings_surprise_pct": "+1%",
+      "pre_earnings_sentiment": "neutral",
+      "key_similarity_factors": [
+        "High expectations leading into the earnings print, driven by strong industry trends and product momentum",
+        "Supply chain and manufacturing constraints, potentially impacting margin performance and guidance",
+        "Stock price reaction influenced by easing of supply chain fears and reassessment of growth prospects"
+      ],
+      "key_differences": [
+        "Current setup has 6 positive drivers, whereas Q3 2021 had minor margin compression concerns due to supply constraints",
+        "Macro environment has shifted, with current interest rates and inflation levels differing from Q3 2021",
+        "AMD's product portfolio and market positioning have improved since Q3 2021, with increased exposure to high-growth segments"
+      ]
+    }
+  ]
+}

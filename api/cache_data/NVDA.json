@@ -1,0 +1,375 @@
+{
+  "ticker": "NVDA",
+  "brief_id": "650e3ff6-47ad-4b35-ad51-7e3bf0a64655",
+  "generated_at": "2026-05-30T22:09:46.720202Z",
+  "bull_signals": [
+    {
+      "text": "Nvidia's strong Q1 earnings beat, with non-GAAP EPS of $1.87 and $81.6 billion in revenue",
+      "source_id": "article_46174_29",
+      "source_type": "news"
+    },
+    {
+      "text": "The forward P/E of 16.7x and PEG ratio of 0.66 indicate undervaluation relative to growth rate",
+      "source_id": "yf_val_NVDA",
+      "source_type": "filing"
+    },
+    {
+      "text": "Accelerating earnings beats, including a 4-quarter streak of positive surprises",
+      "source_id": "yf_beats_NVDA",
+      "source_type": "filing"
+    },
+    {
+      "text": "Revenue growth acceleration of 96.2% YoY",
+      "source_id": "yf_rev_NVDA",
+      "source_type": "filing"
+    },
+    {
+      "text": "Short interest of 1.3% of float suggests minimal bearish positioning",
+      "source_id": "yf_si_NVDA",
+      "source_type": "filing"
+    }
+  ],
+  "bear_signals": [],
+  "risk_flags": [],
+  "analyst_sentiment": "bullish",
+  "comparable_quarter": null,
+  "sources": [
+    {
+      "id": "article_46174_29",
+      "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-nvda/nvidia/future",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "serp_58574",
+      "url": "https://sherwood.news/markets/nvidia-q1-earnings-report-jensen-huang-ai-boom/",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "serp_53580",
+      "url": "https://www.barrons.com/articles/nvidia-stock-price-earnings-ai-9c819720",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "serp_84545",
+      "url": "https://moneyweek.com/investments/tech-stocks/nvidia-earnings",
+      "type": "news",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.65
+    },
+    {
+      "id": "yf_rev_NVDA",
+      "url": "https://finance.yahoo.com/quote/NVDA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_val_NVDA",
+      "url": "https://finance.yahoo.com/quote/NVDA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_si_NVDA",
+      "url": "https://finance.yahoo.com/quote/NVDA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "yf_beats_NVDA",
+      "url": "https://finance.yahoo.com/quote/NVDA",
+      "type": "filing",
+      "date": "2026-05-30T00:00:00Z",
+      "authority": 0.9
+    },
+    {
+      "id": "sec_NVDA_10-Q_84875_14",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=10-Q",
+      "type": "filing",
+      "date": "2026-05-20T00:00:00Z",
+      "authority": 1.0
+    }
+  ],
+  "contradictions_resolved": [
+    {
+      "chunk_a": "article_46174_2",
+      "chunk_b": "yf_rev_NVDA",
+      "claim_a": "NVIDIA is forecast to grow revenue by 24.1% per annum.",
+      "claim_b": "Consensus revenue estimate for NVDA next quarter represents 96.2% YoY growth.",
+      "resolution": "yf_rev_NVDA wins because it refers to a specific time period (next quarter) and has a higher authority source (0.9) than article_46174_2 (0.65), but they coexist as they refer to different time horizons."
+    },
+    {
+      "chunk_a": "article_46174_67",
+      "chunk_b": "sec_NVDA_10-Q_84875_14",
+      "claim_a": "NVIDIA had 71% gross margins in fiscal 2026.",
+      "claim_b": "NVIDIA had a gross profit of 74.9% in Q4 2026.",
+      "resolution": "sec_NVDA_10-Q_84875_14 wins because it is a primary source (SEC filing) with higher authority (1.0) than article_46174_67 (0.65)."
+    },
+    {
+      "chunk_a": "article_46174_29",
+      "chunk_b": "serp_84545",
+      "claim_a": "NVDA's Q1 non-GAAP EPS beat consensus.",
+      "claim_b": "Nvidia's Q4 2026 results showed a 73% increase in quarterly revenue and beat expectations.",
+      "resolution": "Both coexist because they refer to different quarters (Q1 and Q4 2026) and thus are not contradictory."
+    },
+    {
+      "chunk_a": "article_46174_95",
+      "chunk_b": "yf_val_NVDA",
+      "claim_a": "NVIDIA has a future P/E of about 28.9x.",
+      "claim_b": "NVDA trades at 16.7x forward P/E.",
+      "resolution": "yf_val_NVDA wins because it has a higher authority source (0.9) than article_46174_95 (0.65)."
+    },
+    {
+      "chunk_a": "serp_53580",
+      "chunk_b": "serp_58574",
+      "claim_a": "Nvidia stock was on pace for a three-day losing streak.",
+      "claim_b": "Nvidia delivers another sales and earnings beat in Q1, with strong Q2 revenue guidance and increasing shareholder returns.",
+      "resolution": "Both coexist because they refer to different aspects of Nvidia's stock performance (short-term losing streak vs. long-term growth)."
+    },
+    {
+      "chunk_a": "serp_84545",
+      "chunk_b": "article_46174_29",
+      "claim_a": "Nvidia's Q4 2026 results showed a 73% increase in quarterly revenue and beat expectations.",
+      "claim_b": "NVDA's Q1 non-GAAP EPS beat consensus.",
+      "resolution": "Both coexist because they refer to different quarters (Q4 2026 and Q1) and thus are not contradictory."
+    },
+    {
+      "chunk_a": "yf_val_NVDA",
+      "chunk_b": "article_46174_95",
+      "claim_a": "NVDA trades at 16.7x forward P/E.",
+      "claim_b": "NVIDIA has a future P/E of about 28.9x.",
+      "resolution": "yf_val_NVDA wins because it has a higher authority source (0.9) than article_46174_95 (0.65)."
+    }
+  ],
+  "enrichment_latency_ms": 8237,
+  "verdict": {
+    "tldr": "With a strong earnings track record, undervalued multiples, and minimal bearish positioning, Nvidia is well-positioned for a bullish earnings reaction, making a positive surprise the most likely outcome.",
+    "recommended_scenario": "bull",
+    "confidence_level": "high",
+    "watchlist_priority": "top"
+  },
+  "scenarios": {
+    "bull": {
+      "summary": "Nvidia's strong earnings momentum, fueled by accelerating revenue growth and a history of positive surprises, positions the company for continued outperformance, with its undervalued forward P/E and PEG ratio suggesting further upside potential. The minimal bearish positioning, as indicated by low short interest, reduces the risk of a short squeeze and increases the likelihood of a bullish earnings reaction.",
+      "confidence": 0.94,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 1.0,
+        "authority_adjustment": 0.2726,
+        "sentiment_adjustment": 0.15,
+        "yfinance_adjustment": 0.2,
+        "yfinance_consensus": "STRONG_BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 4
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 5
+          }
+        ]
+      },
+      "drivers": [
+        "Nvidia's strong Q1 earnings beat, with non-GAAP EPS of $1.87 and $81.6 billion in revenue",
+        "The forward P/E of 16.7x and PEG ratio of 0.66 indicate undervaluation relative to growth rate",
+        "Accelerating earnings beats, including a 4-quarter streak of positive surprises"
+      ],
+      "triggers": [
+        "Q2 non-GAAP EPS above $2.00",
+        "Revenue growth exceeding 90% YoY"
+      ],
+      "expected_move": {
+        "range_low": "+20%",
+        "range_high": "+137%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "base": {
+      "summary": "Nvidia's upcoming earnings print is expected to demonstrate continued revenue growth and profitability, driven by the company's dominant position in the graphics processing unit market and its expanding presence in emerging technologies such as artificial intelligence and cloud computing.",
+      "confidence": 0.05,
+      "drivers": [
+        "Nvidia's strong Q1 earnings beat, with non-GAAP EPS of $1.87 and $81.6 billion in revenue",
+        "The forward P/E of 16.7x and PEG ratio of 0.66 indicate undervaluation relative to growth rate",
+        "No significant downside risks identified."
+      ],
+      "triggers": [
+        "In-line Q2 earnings results",
+        "Revenue growth between 85-95% YoY"
+      ],
+      "expected_move": {
+        "range_low": "-4%",
+        "range_high": "+12%",
+        "based_on": "analyst_price_targets"
+      }
+    },
+    "bear": {
+      "summary": "Given the lack of significant downside risks, a bearish scenario appears unlikely, but could potentially emerge if Nvidia fails to meet elevated earnings expectations or if the company's growth prospects are negatively impacted by unforeseen market or economic developments.",
+      "confidence": 0.01,
+      "confidence_breakdown": {
+        "raw_signal_ratio": 0.0,
+        "authority_adjustment": 0.0,
+        "sentiment_adjustment": -0.15,
+        "yfinance_adjustment": -0.2,
+        "yfinance_consensus": "STRONG_BUY",
+        "source_weights_used": [
+          {
+            "source_type": "news",
+            "weight": 0.9,
+            "count": 4
+          },
+          {
+            "source_type": "filing",
+            "weight": 1.4,
+            "count": 5
+          }
+        ]
+      },
+      "risks": [
+        "No significant downside risks identified."
+      ],
+      "triggers": [
+        "Q2 revenue growth below 80% YoY",
+        "Forward guidance implying a slowdown in earnings momentum"
+      ],
+      "expected_move": {
+        "range_low": "-32%",
+        "range_high": "-12%",
+        "based_on": "analyst_price_targets"
+      }
+    }
+  },
+  "signal_quality_summary": {
+    "total_signals": 5,
+    "high_authority_signals": 1,
+    "low_authority_signals": 4,
+    "avg_source_recency_days": 1,
+    "freshest_source": "2026-05-30T00:00:00Z",
+    "oldest_source": "2026-05-20T00:00:00Z"
+  },
+  "contradiction_impact": {
+    "contradictions_found": 7,
+    "confidence_impact": "-0.05 on bull",
+    "details": [
+      {
+        "claim_a": "NVIDIA is forecast to grow revenue by 24.1% per annum.",
+        "claim_b": "Consensus revenue estimate for NVDA next quarter represents 96.2% YoY growth.",
+        "resolution": "yf_rev_NVDA wins because it refers to a specific time period (next quarter) and has a higher authority source (0.9) than article_46174_2 (0.65), but they coexist as they refer to different time horizons.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "NVIDIA had 71% gross margins in fiscal 2026.",
+        "claim_b": "NVIDIA had a gross profit of 74.9% in Q4 2026.",
+        "resolution": "sec_NVDA_10-Q_84875_14 wins because it is a primary source (SEC filing) with higher authority (1.0) than article_46174_67 (0.65).",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "NVDA's Q1 non-GAAP EPS beat consensus.",
+        "claim_b": "Nvidia's Q4 2026 results showed a 73% increase in quarterly revenue and beat expectations.",
+        "resolution": "Both coexist because they refer to different quarters (Q1 and Q4 2026) and thus are not contradictory.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "NVIDIA has a future P/E of about 28.9x.",
+        "claim_b": "NVDA trades at 16.7x forward P/E.",
+        "resolution": "yf_val_NVDA wins because it has a higher authority source (0.9) than article_46174_95 (0.65).",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Nvidia stock was on pace for a three-day losing streak.",
+        "claim_b": "Nvidia delivers another sales and earnings beat in Q1, with strong Q2 revenue guidance and increasing shareholder returns.",
+        "resolution": "Both coexist because they refer to different aspects of Nvidia's stock performance (short-term losing streak vs. long-term growth).",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "Nvidia's Q4 2026 results showed a 73% increase in quarterly revenue and beat expectations.",
+        "claim_b": "NVDA's Q1 non-GAAP EPS beat consensus.",
+        "resolution": "Both coexist because they refer to different quarters (Q4 2026 and Q1) and thus are not contradictory.",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      },
+      {
+        "claim_a": "NVDA trades at 16.7x forward P/E.",
+        "claim_b": "NVIDIA has a future P/E of about 28.9x.",
+        "resolution": "yf_val_NVDA wins because it has a higher authority source (0.9) than article_46174_95 (0.65).",
+        "affected_scenario": "bull",
+        "net_effect": "Maintained bull confidence"
+      }
+    ]
+  },
+  "sentiment_trend": {
+    "current": "bullish",
+    "30d_ago": "bullish",
+    "direction": "stable",
+    "momentum": "neutral",
+    "analyst_upgrades_30d": 0,
+    "analyst_downgrades_30d": 0
+  },
+  "risk_matrix": [
+    {
+      "risk": "Hyperscaler CapEx deceleration or digestion phase",
+      "probability": "low",
+      "impact": "high",
+      "affected_revenue_pct": "~15%",
+      "scenario_most_affected": "bear"
+    }
+  ],
+  "historical_matches": [
+    {
+      "quarter": "Q2 2023",
+      "ticker": "NVDA",
+      "similarity_score": 0.92,
+      "setup_summary": "Similar transition period from Ampere to Hopper, accompanied by massive data center demand surge.",
+      "outcome": "Stock gapped up 24% post-earnings as guidance completely shattered Wall Street consensus.",
+      "return_5d": "+28.4%",
+      "return_30d": "+41.9%",
+      "earnings_surprise_pct": "+22%",
+      "pre_earnings_sentiment": "bullish",
+      "key_similarity_factors": [
+        "Similar transition period from a major product cycle to another, indicating potential for significant growth",
+        "Strong data center demand, a key driver for NVDA's revenue and profitability",
+        "High expectations from investors leading into the earnings report"
+      ],
+      "key_differences": [
+        "Current setup has no negative risks, whereas Q2 2023 had concerns around the transition from Ampere to Hopper",
+        "Valuation multiples are relatively higher now compared to Q2 2023, potentially impacting stock price reaction to earnings",
+        "Competitive landscape has evolved, with new entrants in the data center and AI markets"
+      ]
+    },
+    {
+      "quarter": "Q3 2021",
+      "ticker": "NVDA",
+      "similarity_score": 0.78,
+      "setup_summary": "High expectations leading into the print, but minor margin compression due to supply constraints.",
+      "outcome": "Stock traded sideways initially before rallying 2 weeks later as supply chain fears eased.",
+      "return_5d": "+1.2%",
+      "return_30d": "+6.6%",
+      "earnings_surprise_pct": "+1%",
+      "pre_earnings_sentiment": "neutral",
+      "key_similarity_factors": [
+        "High expectations from investors leading into the earnings report, similar to the current setup",
+        "Strong demand for NVDA's products, driven by growth in gaming and data center markets",
+        "Potential for guidance to exceed Wall Street consensus, given the company's history of beating estimates"
+      ],
+      "key_differences": [
+        "Current setup has 5 positive drivers, whereas Q3 2021 had minor margin compression due to supply constraints",
+        "Macro environment is different now, with changes in interest rates and global economic conditions",
+        "NVDA's product portfolio has expanded, with new offerings in areas like AI and autonomous vehicles"
+      ]
+    }
+  ]
+}
